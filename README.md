@@ -54,7 +54,7 @@ Este projeto depende do framework educacional:
 2. Guilherme Rodrigues França da Rocha
 3. Filipe Oliveira Santos
 4. Jose Raimundo De Melo Filho
-5. Andrew Neves Da Silva
+5. Andrew Oliveira Neves Da Silva
 
 ---
 
