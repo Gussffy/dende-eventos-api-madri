@@ -50,11 +50,11 @@ Este projeto depende do framework educacional:
 
 **Integrantes do Time:**
 
-1. ____________________________________
-2. ____________________________________
-3. ____________________________________
-4. ____________________________________
-5. ____________________________________
+1. Gustavo Santos França
+2. Guilherme Rodrigues França da Rocha
+3. Filipe Oliveira Santos
+4. Jose Raimundo De Melo Filho
+5. Andrew Neves Da Silva
 
 ---
 
