@@ -1,14 +1,11 @@
-package br.com.softhouse.dende.model;
+package br.com.softhouse.dende.dto;
 
+import br.com.softhouse.dende.model.Organizador;
 import br.com.softhouse.dende.model.enums.Sexo;
 import java.time.LocalDate;
-import java.time.Period;
 
-// Classe de modelo para representar um organizador de eventos no sistema
-public class Organizador {
-
-    // Atributos do organizador
-    private Long id;
+// Classe DTO para receber os dados de um organizador em requisições da API
+public class OrganizadorRequestDTO {
     private String nome;
     private LocalDate dataNascimento;
     private Sexo sexo;
@@ -17,24 +14,6 @@ public class Organizador {
     private String cnpj;
     private String razaoSocial;
     private String nomeFantasia;
-    private Boolean ativo;
-
-    public Organizador() {
-        this.ativo = true; // Por padrão, o organizador é criado como ativo
-    }
-
-    public Organizador(String nome, LocalDate dataNascimento, Sexo sexo, String email, String senha) {
-        this.nome = nome;
-        this.dataNascimento = dataNascimento;
-        this.sexo = sexo;
-        this.email = email;
-        this.senha = senha;
-        this.ativo = true;
-    }
-
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -60,17 +39,16 @@ public class Organizador {
     public String getNomeFantasia() { return nomeFantasia; }
     public void setNomeFantasia(String nomeFantasia) { this.nomeFantasia = nomeFantasia; }
 
-    public Boolean getAtivo() { return ativo; }
-    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
-
-    public boolean isEmpresa() {
-        return cnpj != null && !cnpj.isEmpty();
-    }
-
-    // Metodo para calcular a idade do organizador
-    public String getIdade() {
-        if (dataNascimento == null) return "";
-        Period periodo = Period.between(dataNascimento, LocalDate.now());
-        return periodo.getYears() + " anos, " + periodo.getMonths() + " meses, " + periodo.getDays() + " dias";
+    public Organizador toEntity() {
+        Organizador organizador = new Organizador();
+        organizador.setNome(this.nome);
+        organizador.setDataNascimento(this.dataNascimento);
+        organizador.setSexo(this.sexo);
+        organizador.setEmail(this.email);
+        organizador.setSenha(this.senha);
+        organizador.setCnpj(this.cnpj);
+        organizador.setRazaoSocial(this.razaoSocial);
+        organizador.setNomeFantasia(this.nomeFantasia);
+        return organizador;
     }
 }
