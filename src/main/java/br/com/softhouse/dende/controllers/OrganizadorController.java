@@ -6,7 +6,6 @@ import br.com.dende.softhouse.process.route.ResponseEntity;
 import br.com.softhouse.dende.dto.OrganizadorRequestDTO;
 import br.com.softhouse.dende.dto.OrganizadorResponseDTO;
 import br.com.softhouse.dende.dto.StatusChangeRequestDTO;
-import br.com.softhouse.dende.dto.MensagemResponseDTO;
 import br.com.softhouse.dende.services.OrganizadorService;
 
 /**
