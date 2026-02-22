@@ -6,13 +6,13 @@ import br.com.softhouse.dende.model.Usuario;
 import br.com.softhouse.dende.repositories.UsuarioRepository;
 
 /**
-  SERVICE DE USUÁRIOS
+    SERVICE DE USUÁRIOS
 
-  Esta classe é responsável por implementar TODAS as regras de negócio relacionadas a usuários.
-  Ela atua como uma camada intermediária entre o Controller (camada de apresentação) e o
-  Repositório (camada de dados).
+    Esta classe é responsável por implementar TODAS as regras de negócio relacionadas a usuários.
+    Ela atua como uma camada intermediária entre o Controller (camada de apresentação) e o
+    Repositório (camada de dados).
 
-  Princípios aplicados:
+    Princípios aplicados:
     - Single Responsibility: Cada metodo tem uma responsabilidade única
     - Validações: Todas as regras de negócio são validadas aqui
     - Tratamento de exceções: Lança exceções com mensagens claras para o controller
@@ -99,6 +99,7 @@ public class UsuarioService {
 
     // Atualizar Usuário (User Stories 3)
     public UsuarioResponseDTO atualizar(Long id, UsuarioRequestDTO request) throws IllegalArgumentException {
+
         // Busca o usuário (entidade) existente no repositório pelo ID
         Usuario existente = buscarEntidadePorId(id);
 

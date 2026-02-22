@@ -1,83 +1,61 @@
 package br.com.softhouse.dende.model;
 
+import br.com.softhouse.dende.model.enums.Sexo;
 import java.time.LocalDate;
-import java.util.Objects;
+import java.time.Period;
+
+// Classe de modelo para representar um usuário do sistema
 
 public class Usuario {
 
+    // Atributos do usuário
+    private Long id;
     private String nome;
     private LocalDate dataNascimento;
-    private String sexo;
+    private Sexo sexo;
     private String email;
-
-    public Usuario(
-            final String nome,
-            final LocalDate dataNascimento,
-            final String sexo,
-            final String email
-    ) {
-        this.nome = nome;
-        this.dataNascimento = dataNascimento;
-        this.sexo = sexo;
-        this.email = email;
-    }
+    private String senha;
+    private Boolean ativo;
 
     public Usuario() {
-
+        this.ativo = true; // Por padrão, o usuário é criado como ativo
     }
 
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
+    public Usuario(String nome, LocalDate dataNascimento, Sexo sexo, String email, String senha) {
         this.nome = nome;
-    }
-
-    public LocalDate getDataNascimento() {
-        return dataNascimento;
-    }
-
-    public void setDataNascimento(LocalDate dataNascimento) {
         this.dataNascimento = dataNascimento;
-    }
-
-    public String getSexo() {
-        return sexo;
-    }
-
-    public void setSexo(String sexo) {
         this.sexo = sexo;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
         this.email = email;
+        this.senha = senha;
+        this.ativo = true;
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) return true;
-        if (object == null || getClass() != object.getClass()) return false;
-        Usuario usuario = (Usuario) object;
-        return Objects.equals(nome, usuario.nome) && Objects.equals(dataNascimento, usuario.dataNascimento) && Objects.equals(sexo, usuario.sexo) && Objects.equals(email, usuario.email);
-    }
+    // Getters e Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(nome, dataNascimento, sexo, email);
-    }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    @Override
-    public String toString() {
-        return "Usuario{" +
-                "nome='" + nome + '\'' +
-                ", dataNascimento=" + dataNascimento +
-                ", sexo='" + sexo + '\'' +
-                ", email='" + email + '\'' +
-                '}';
+    public LocalDate getDataNascimento() { return dataNascimento; }
+    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
+
+    public Sexo getSexo() { return sexo; }
+    public void setSexo(Sexo sexo) { this.sexo = sexo; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getSenha() { return senha; }
+    public void setSenha(String senha) { this.senha = senha; }
+
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+
+    //Metodo para calcular a idade do usuário
+    public String getIdade() {
+        if (dataNascimento == null) return "";
+        Period periodo = Period.between(dataNascimento, LocalDate.now());
+        return periodo.getYears() + " anos, " + periodo.getMonths() + " meses, " + periodo.getDays() + " dias";
     }
 }

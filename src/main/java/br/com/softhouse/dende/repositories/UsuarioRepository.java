@@ -58,7 +58,7 @@ public class UsuarioRepository {
 
     /** CRUD DE USUÁRIOS - Create, Read, Update, Delete */
 
-    // Metodo para salvar um usuário
+    // Metodo para salvar um usuário (criar ou atualizar)
     public Usuario salvar(Usuario usuario) {
         if (usuario.getId() == null) {                       // Verifica se o usuário não tem ID (é novo)
             usuario.setId(proximoId++);                      // Atribui um ID único ao usuário e incrementa o contador para o próximo ID
@@ -88,7 +88,7 @@ public class UsuarioRepository {
             // Verifica se o usuario existe e se o email foi alterado
             if (existente != null && !existente.getEmail().equals(usuario.getEmail())) {
 
-                // Verifica se o usuário existe e o email foi alterado
+                // Remove o usuário antigo do mapa de Emails (usando o email antigo como chave)
                 usuariosPorEmail.remove(existente.getEmail());
 
                 // Atualiza o mapa de Emails com a nova entrada de email
