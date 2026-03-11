@@ -69,8 +69,8 @@ public class Organizador {
 
     // Metodo para calcular a idade do organizador
     public String getIdade() {
-        if (dataNascimento == null) return "";
-        Period periodo = Period.between(dataNascimento, LocalDate.now());
-        return periodo.getYears() + " anos, " + periodo.getMonths() + " meses, " + periodo.getDays() + " dias";
+        if (dataNascimento == null) return ""; // Retorna uma string vazia se a data de nascimento não estiver definida
+        Period periodo = Period.between(dataNascimento, LocalDate.now()); // Calcula o período entre a data de nascimento e a data atual
+        return periodo.getYears() + " anos, " + periodo.getMonths() + " meses, " + periodo.getDays() + " dias"; // Retorna a idade formatada como "X anos, Y meses, Z dias"
     }
 }

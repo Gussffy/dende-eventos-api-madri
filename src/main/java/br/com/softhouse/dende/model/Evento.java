@@ -144,7 +144,9 @@ public class Evento {
 
     // Metodo para formatar o período do evento em uma string legível
     public String getPeriodoFormatado() {
+        // Formata as datas de início e fim do evento usando o padrão "dd/MM/yyyy HH:mm"
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm ");
+        // Retorna uma string no formato "dataInicio até dataFinal", por exemplo: "01/01/2024 18:00 até 01/01/2024 22:00"
         return dataInicio.format(formatter) + " até " + dataFinal.format(formatter);
     }
 }

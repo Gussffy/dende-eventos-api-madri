@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * REPOSITÓRIO DE ORGANIZADORES
- * <p>
+ *
  * Repositório para gerenciar os organizadores, utilizando armazenamento em memória.
  * Implementa o padrão Singleton para garantir que haja apenas uma instância do repositório.
  */
@@ -47,9 +47,7 @@ public class OrganizadorRepository {
         return instance;
     }
 
-    /**
-     * CRUD DE ORGANIZADORES - Create, Read, Update, Delete
-     */
+    /** CRUD DE ORGANIZADORES - Create, Read, Update, Delete */
 
     // Metodo para salvar um organizador (criar ou atualizar)
     public Organizador salvar(Organizador organizador) {

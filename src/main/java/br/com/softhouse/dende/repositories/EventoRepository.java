@@ -7,10 +7,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
-     REPOSITÓRIO DE EVENTOS
+ REPOSITÓRIO DE EVENTOS
 
-     Repositório para gerenciar os eventos, utilizando armazenamento em memória.
-     Implementa o padrão Singleton para garantir que haja apenas uma instância do repositório.
+ Repositório para gerenciar os eventos, utilizando armazenamento em memória.
+ Implementa o padrão Singleton para garantir que haja apenas uma instância do repositório.
+
  */
 
 public class EventoRepository {

@@ -94,6 +94,7 @@ public class Ingresso {
 
     // Metodo para formatar a data de compra do ingresso em um formato legível
     public String getDataCompraFormatada() {
+        // Formata a data de compra usando o padrão "dd/MM/yyyy HH:mm"
         return dataCompra.format(DateTimeFormatter.ofPattern(" dd/MM/yyyy HH:mm "));
     }
 }

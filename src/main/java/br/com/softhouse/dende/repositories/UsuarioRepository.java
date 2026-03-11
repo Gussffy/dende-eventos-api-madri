@@ -7,15 +7,15 @@ import java.util.Map;
 
 
 /**
-    REPOSITÓRIO DE USUÁRIOS
-
-    Esta classe é responsável por simular um banco de dados em memória para usuários.
-    Ela implementa o padrão SINGLETON, garantindo que exista apenas uma instância
-    em toda a aplicação.
-
-    Funciona como se fosse uma "tabela" no banco de dados, com índices para busca
-    rápida por ID e por Email.
-
+ * REPOSITÓRIO DE USUÁRIOS
+ *
+ * Esta classe é responsável por simular um banco de dados em memória para usuários.
+ * Ela implementa o padrão SINGLETON, garantindo que exista apenas uma instância
+ * em toda a aplicação.
+ *
+ * Funciona como se fosse uma "tabela" no banco de dados, com índices para busca
+ * rápida por ID e por Email.
+ *
  */
 
 public class UsuarioRepository {
@@ -23,9 +23,9 @@ public class UsuarioRepository {
     // Instância única do repositório (padrão Singleton)
     private static UsuarioRepository instance;
 /**
-    Mapa para buscar usuários por ID e por Email
-    Map<Long, Usuario>: estrutura chave-valor onde a chave é Long (ID) e o valor é Usuario
-    Map<String, Usuario>: estrutura chave-valor onde a chave é String (Email) e o valor é Usuario
+ * Mapa para buscar usuários por ID e por Email
+ * Map<Long, Usuario>: estrutura chave-valor onde a chave é Long (ID) e o valor é Usuario
+ * Map<String, Usuario>: estrutura chave-valor onde a chave é String (Email) e o valor é Usuario
 */
     private final Map<Long, Usuario> usuariosPorId;
     private final Map<String, Usuario> usuariosPorEmail;
@@ -49,10 +49,10 @@ public class UsuarioRepository {
     // Metodo para obter a instância única do repositório
     public static synchronized UsuarioRepository getInstance() {
 
-        if (instance == null) {                     // Verifica se a instância ainda não foi criada
-            instance = new UsuarioRepository();     // Cria a instância (chama o construtor privado)
+        if (instance == null) {                 // Verifica se a instância ainda não foi criada
+            instance = new UsuarioRepository(); // Cria a instância (chama o construtor privado)
         }
-        return instance;                            // Retorna a instância (nova ou existente)
+        return instance;                        // Retorna a instância (nova ou existente)
 
     }
 
