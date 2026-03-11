@@ -3,119 +3,124 @@ package br.com.softhouse.dende.controllers;
 import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
+import br.com.softhouse.dende.dto.ApiResponse;
 import br.com.softhouse.dende.dto.UsuarioRequestDTO;
 import br.com.softhouse.dende.dto.UsuarioResponseDTO;
 import br.com.softhouse.dende.dto.StatusChangeRequestDTO;
 import br.com.softhouse.dende.services.UsuarioService;
 
 /**
-    Controlador de Usuários
-
-    Esta classe é responsável por RECEBER as requisições HTTP relacionadas a usuários
-    e DELEGAR para o serviço de usuários (UsuarioService) a execução das regras de negócio.
-
+ *     Controlador de Usuários
+ *
+ *     Esta classe é responsável por RECEBER as requisições HTTP relacionadas a usuários
+ *     e DELEGAR para o serviço de usuários (UsuarioService) a execução das regras de negócio.
  */
 @Controller
-@RequestMapping(path = "/usuarios") // Define a rota base para todas as operações relacionadas a usuários
+@RequestMapping(path = "/usuarios")
 public class UsuarioController {
 
-    // Instância do serviço de usuários para delegar as operações
+    // Injeção de dependência do serviço de usuários
     private final UsuarioService usuarioService;
 
-    // Construtor que inicializa o serviço de usuários
     public UsuarioController() {
         this.usuarioService = new UsuarioService();
     }
 
-    // Mapeia a rota POST /usuarios para cadastrar um novo usuário
+    // Mapeia a requisição POST /usuarios para cadastrar um novo usuário
     @PostMapping
-    public ResponseEntity<String> cadastrar(@RequestBody UsuarioRequestDTO request) {
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> cadastrar(@RequestBody UsuarioRequestDTO request) {
+        // Tenta cadastrar o usuário e retorna a resposta adequada
         try {
-            // Chama o service para cadastrar o usuário
-            // O service retorna um DTO de resposta com os dados do usuário criado
             UsuarioResponseDTO response = usuarioService.cadastrar(request);
-
-            // Retorna uma resposta de sucesso com o ID do usuário criado
-            return ResponseEntity.status(201, "Usuário cadastrado com sucesso. ID: " + response.getId());
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    response, "Usuário cadastrado com sucesso", 201
+            );
+            return ResponseEntity.status(201, apiResponse);
         } catch (IllegalArgumentException e) {
-
-            // Captura as exceções lançadas pelo service e retorna uma resposta de erro com a mensagem da exceção
-            return ResponseEntity.status(400, "Erro ao cadastrar usuário: " + e.getMessage());
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    e.getMessage(), 400, "Bad Request"
+            );
+            return ResponseEntity.status(400, apiResponse);
         }
     }
 
-    // Mapeia a rota PUT /usuarios/{usuarioId} para atualizar os dados de um usuário existente
+    // Mapeia a requisição PUT /usuarios/{usuarioId} para atualizar os dados de um usuário existente
     @PutMapping(path = "/{usuarioId}")
-    public ResponseEntity<String> alterar(
-            @PathVariable(parameter = "usuarioId") Long id,  // Extrai o ID do usuário da URL
-            @RequestBody UsuarioRequestDTO request) {        // Extrai o corpo da requisição (JSON)
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> alterar(
+            @PathVariable(parameter = "usuarioId") Long id,
+            @RequestBody UsuarioRequestDTO request) {
+        // Tenta atualizar o usuário e retorna a resposta adequada
         try {
-
-            // Chama o service para atualizar o usuário
             UsuarioResponseDTO response = usuarioService.atualizar(id, request);
-
-            // Retorna uma resposta de sucesso com o ID do usuário atualizado
-            return ResponseEntity.ok("Usuário atualizado com sucesso. ID: " + response.getId());
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    response, "Usuário atualizado com sucesso", 200
+            );
+            return ResponseEntity.ok(apiResponse);
         } catch (IllegalArgumentException e) {
-
-            // Captura as exceções lançadas pelo service e retorna uma resposta de erro com a mensagem da exceção
-            return ResponseEntity.status(400, "Erro ao atualizar usuário: " + e.getMessage());
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    e.getMessage(), 400, "Bad Request"
+            );
+            return ResponseEntity.status(400, apiResponse);
         }
     }
 
-    // Mapeia a rota GET /usuarios/{usuarioId} para visualizar os dados de um usuário por ID
+    // Mapeia a requisição GET /usuarios/{usuarioId} para visualizar os dados de um usuário específico
     @GetMapping(path = "/{usuarioId}")
-    public ResponseEntity<UsuarioResponseDTO> visualizar(@PathVariable(parameter = "usuarioId") Long id) {
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> visualizar(@PathVariable(parameter = "usuarioId") Long id) {
+        // Tenta buscar o usuário por ID e retorna a resposta adequada
         try {
-            // Chama o service para buscar o usuário por ID
             UsuarioResponseDTO response = usuarioService.buscarPorId(id);
-
-            // Retorna uma resposta de sucesso com os dados do usuário encontrado
-            return ResponseEntity.ok(response);
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    response, "Usuário encontrado", 200
+            );
+            return ResponseEntity.ok(apiResponse);
         } catch (IllegalArgumentException e) {
-
-            // Se o usuário não for encontrado, retorna status 404 (Not Found) com corpo null
-              return ResponseEntity.status(404, null);
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    e.getMessage(), 404, "Not Found"
+            );
+            return ResponseEntity.status(404, apiResponse);
         }
     }
 
-    // Mapeia a rota PATCH /usuarios/{usuarioId}/{status} para ativar ou desativar um usuário, exigindo a senha para autenticação
+    // Mapeia a requisição PATCH /usuarios/{usuarioId}/{status} para ativar ou desativar um usuário, exigindo a senha para autenticação
     @PatchMapping(path = "/{usuarioId}/{status}")
-    public ResponseEntity<String> alterarStatus(
-            @PathVariable(parameter = "usuarioId") Long id,     // Extrai o ID do usuário da URL
-            @PathVariable(parameter = "status") boolean ativar, // Extrai o status (true para ativar, false para desativar) da URL
-            @RequestBody StatusChangeRequestDTO request) {      // Extrai o corpo da requisição (JSON) que deve conter a senha para autenticação
-
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> alterarStatus(
+            @PathVariable(parameter = "usuarioId") Long id,
+            @PathVariable(parameter = "status") boolean ativar,
+            @RequestBody StatusChangeRequestDTO request) {
+        // Tenta ativar ou desativar o usuário com base no status e retorna a resposta adequada
         try {
-
-            // Verifica se o request é nulo OU a senha é nula OU vazia
             if (request == null || request.getSenha() == null || request.getSenha().trim().isEmpty()) {
-
-                // Retorna status 400 (Bad Request) com mensagem de erro indicando que a senha é obrigatória
-                return ResponseEntity.status(400, "Senha é obrigatória para alterar o status do usuário");
+                ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                        "Senha é obrigatória", 400, "Bad Request"
+                );
+                return ResponseEntity.status(400, apiResponse);
             }
-
+            // Verificar se o usuário existe antes de tentar alterar o status
             UsuarioResponseDTO response;
+            String operacao;
 
-            // Chama o service para ativar ou desativar o usuário, passando o ID, o status desejado e a senha para autenticação
+            // O serviço de usuário irá verificar a senha e realizar a ativação ou desativação conforme o valor de "ativar"
             if (ativar) {
                 response = usuarioService.ativarComSenha(id, request.getSenha());
+                operacao = "ativado";
             } else {
                 response = usuarioService.desativarComSenha(id, request.getSenha());
+                operacao = "desativado";
             }
-
-            // Retorna status 200 (OK) com mensagem de sucesso contendo ID e novo status
-            return ResponseEntity.ok("Status do usuário atualizado com sucesso. ID: " + response.getId() + ", Ativo: " + response.getAtivo());
+            // Se a operação for bem-sucedida, retorna a resposta com o status 200 e a mensagem de sucesso
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    response, "Usuário " + operacao + " com sucesso", 200
+            );
+            return ResponseEntity.ok(apiResponse);
 
         } catch (IllegalArgumentException e) {
-
-            // Verifica se a mensagem de erro contém "Senha incorreta"
-            // Se sim, retorna 401 (Unauthorized) - erro de autenticação
-            // Se não, retorna 400 (Bad Request) - erro de validação
             int status = e.getMessage().contains("Senha incorreta") ? 401 : 400;
-
-            // Retorna a resposta de erro com o status apropriado e a mensagem da exceção
-            return ResponseEntity.status(status, "Erro ao alterar status do usuário: " + e.getMessage());
+            String erro = e.getMessage().contains("Senha incorreta") ? "Unauthorized" : "Bad Request";
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
+                    e.getMessage(), status, erro
+            );
+            return ResponseEntity.status(status, apiResponse);
         }
     }
 }
