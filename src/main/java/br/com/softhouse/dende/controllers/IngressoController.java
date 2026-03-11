@@ -3,6 +3,7 @@ package br.com.softhouse.dende.controllers;
 import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
+import br.com.softhouse.dende.dto.ApiResponse;
 import br.com.softhouse.dende.dto.IngressoRequestDTO;
 import br.com.softhouse.dende.dto.IngressoResponseDTO;
 import br.com.softhouse.dende.dto.CompraResponseDTO;
@@ -10,68 +11,96 @@ import br.com.softhouse.dende.dto.CancelamentoResponseDTO;
 import br.com.softhouse.dende.services.IngressoService;
 import java.util.List;
 
-/**
-    CONTROLADOR DE INGRESSOS
-
-    Esta classe é responsável por RECEBER as requisições HTTP relacionadas a ingressos
-    e DELEGAR para o serviço de ingressos (IngressoService) a execução das regras de negócio.
-
- */
 @Controller
-@RequestMapping(path = "") // Rota base vazia, as rotas completas são definidas nos métodos para seguir o padrão REST
+@RequestMapping(path = "")
 public class IngressoController {
 
-    // Instância do serviço de ingressos para delegar as operações
     private final IngressoService ingressoService;
 
-    // Construtor que inicializa o serviço de ingressos
     public IngressoController() {
         this.ingressoService = new IngressoService();
     }
 
-    // Mapeia a rota POST /organizadores/{organizadorId}/eventos/{eventoId}/ingressos para comprar um ingresso para um evento específico
     @PostMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}/ingressos")
-    public ResponseEntity<String> comprar(
+    public ResponseEntity<ApiResponse<CompraResponseDTO>> comprar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @RequestBody IngressoRequestDTO request) {
         try {
-            // Chama o service para comprar o ingresso, passando o ID do organizador, o ID do evento e os dados da compra
-            CompraResponseDTO response = ingressoService.comprar(organizadorId, eventoId, request);
-            return ResponseEntity.status(201, "Compra realizada com sucesso. ID do ingresso: " + response.getCodigosIngressos());
-        } catch (IllegalArgumentException e) {
+            if (request == null || request.getUsuarioEmail() == null || request.getUsuarioEmail().trim().isEmpty()) {
+                throw new IllegalArgumentException("Email do usuário é obrigatório");
+            }
 
-            // Captura exceções de validação (usuário não encontrado, evento não encontrado, ingressos esgotados, etc.)
-            return ResponseEntity.status(400, "Erro ao comprar ingresso: " + e.getMessage());
+            CompraResponseDTO compraResponse = ingressoService.comprar(organizadorId, eventoId, request);
+            ApiResponse<CompraResponseDTO> apiResponse = new ApiResponse<>(
+                    compraResponse, "Compra processada com sucesso", 201
+            );
+            return ResponseEntity.status(201, apiResponse);
+        } catch (IllegalArgumentException e) {
+            ApiResponse<CompraResponseDTO> apiResponse = new ApiResponse<>(
+                    e.getMessage(), 400, "Bad Request"
+            );
+            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            ApiResponse<CompraResponseDTO> apiResponse = new ApiResponse<>(
+                    "Erro interno ao processar compra: " + e.getMessage(),
+                    500, "Internal Server Error"
+            );
+            return ResponseEntity.status(500, apiResponse);
         }
     }
 
-    // Mapeia a rota POST /usuarios/{usuarioId}/ingressos/{ingressoId} para cancelar um ingresso específico de um usuário
     @PostMapping(path = "/usuarios/{usuarioId}/ingressos/{ingressoId}")
-    public ResponseEntity<String> cancelar(
+    public ResponseEntity<ApiResponse<CancelamentoResponseDTO>> cancelar(
             @PathVariable(parameter = "usuarioId") Long usuarioId,
             @PathVariable(parameter = "ingressoId") Long ingressoId) {
         try {
-            // Chama o service para cancelar o ingresso, passando o ID do usuário e o ID do ingresso
-            CancelamentoResponseDTO response = ingressoService.cancelar(usuarioId, ingressoId);
-            return ResponseEntity.ok("Cancelamento realizado com sucesso. ID do ingresso cancelado: " + response.getCodigoIngresso());
-        } catch (IllegalArgumentException e) {
+            if (usuarioId == null || ingressoId == null) {
+                throw new IllegalArgumentException("ID do usuário e do ingresso são obrigatórios");
+            }
 
-            // Captura exceções de validação (usuário não encontrado, ingresso não encontrado, ingresso já cancelado, etc.)
-            return ResponseEntity.status(400, "Erro ao cancelar ingresso: " + e.getMessage());
+            CancelamentoResponseDTO cancelamentoResponse = ingressoService.cancelar(usuarioId, ingressoId);
+            ApiResponse<CancelamentoResponseDTO> apiResponse = new ApiResponse<>(
+                    cancelamentoResponse, "Cancelamento realizado com sucesso", 200
+            );
+            return ResponseEntity.ok(apiResponse);
+        } catch (IllegalArgumentException e) {
+            ApiResponse<CancelamentoResponseDTO> apiResponse = new ApiResponse<>(
+                    e.getMessage(), 400, "Bad Request"
+            );
+            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            ApiResponse<CancelamentoResponseDTO> apiResponse = new ApiResponse<>(
+                    "Erro interno ao cancelar ingresso: " + e.getMessage(),
+                    500, "Internal Server Error"
+            );
+            return ResponseEntity.status(500, apiResponse);
         }
     }
 
-    // Mapeia a rota GET /usuarios/{usuarioId}/ingressos para listar todos os ingressos de um usuário específico
     @GetMapping(path = "/usuarios/{usuarioId}/ingressos")
-    public ResponseEntity<List<IngressoResponseDTO>> listar(@PathVariable(parameter = "usuarioId") Long usuarioId) {
+    public ResponseEntity<ApiResponse<List<IngressoResponseDTO>>> listar(@PathVariable(parameter = "usuarioId") Long usuarioId) {
         try {
-            // Chama o service para listar os ingressos do usuário, passando o ID do usuário
+            if (usuarioId == null) {
+                throw new IllegalArgumentException("ID do usuário é obrigatório");
+            }
+
             List<IngressoResponseDTO> ingressos = ingressoService.listarPorUsuario(usuarioId);
-            return ResponseEntity.ok(ingressos);
+            ApiResponse<List<IngressoResponseDTO>> apiResponse = new ApiResponse<>(
+                    ingressos, "Ingressos listados com sucesso", 200
+            );
+            return ResponseEntity.ok(apiResponse);
         } catch (IllegalArgumentException e) {
-            // Captura exceções de validação (usuário não encontrado, etc.)
-            return ResponseEntity.status(404, null);
+            ApiResponse<List<IngressoResponseDTO>> apiResponse = new ApiResponse<>(
+                    e.getMessage(), 404, "Not Found"
+            );
+            return ResponseEntity.status(404, apiResponse);
+        } catch (Exception e) {
+            ApiResponse<List<IngressoResponseDTO>> apiResponse = new ApiResponse<>(
+                    "Erro interno ao listar ingressos: " + e.getMessage(),
+                    500, "Internal Server Error"
+            );
+            return ResponseEntity.status(500, apiResponse);
         }
     }
 }
