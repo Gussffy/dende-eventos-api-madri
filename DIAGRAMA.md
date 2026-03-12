@@ -281,5 +281,4 @@ classDiagram
     CancelamentoResponseDTO --> Ingresso
     StatusChangeRequestDTO --> Usuario
     StatusChangeRequestDTO --> Organizador
-}
 ```
