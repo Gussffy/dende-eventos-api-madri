@@ -1,7 +1,7 @@
 # Diagrama de Classes - Sistema de Gerenciamento de Eventos
 
 ```mermaid
-classDiagram{
+classDiagram
 
     class UsuarioController {
         -UsuarioService usuarioService
