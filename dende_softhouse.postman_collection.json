@@ -1,15 +1,39 @@
 {
   "info": {
-    "_postman_id": "2bc9579d-8c60-4e77-b9bf-796dd095fe86",
+    "_postman_id": "b7111567-2a3e-4746-93b5-f7afb3125aad",
     "name": "Dendê Softhouse",
     "description": "Esta collection documenta e organiza os endpoints da **Plataforma de Eventos**, permitindo o gerenciamento completo de **usuários**, **organizadores**, **eventos** e **ingressos**.\n\nA API atende dois perfis principais:\n\n- **Usuário Comum**\n    \n- **Usuário Organizador de Eventos**\n    \n\nOs endpoints estão organizados por domínio funcional, refletindo as User Stories do sistema.\n\nOs endpoints não estão com todos os campos das requisições completos.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "4546480"
+    "_exporter_id": "42994539"
   },
   "item": [
     {
       "name": "usuarios",
       "item": [
+        {
+          "name": "Alterar Usuário",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nome\": \"Lucas Almeida Silva\", \n    \"dataNascimento\": \"2004-11-11\", \n    \"sexo\": \"OUTRO\", \n    \"email\": \"lucas@mail.com\"\n}\n\n// \"email\": \"emailalt@mail.com\""
+            },
+            "url": {
+              "raw": "http://localhost:8080/usuarios/{{usuarioId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "usuarios",
+                "{{usuarioId}}"
+              ]
+            }
+          },
+          "response": []
+        },
         {
           "name": "Cadastro de Usuário Comum",
           "request": {
@@ -17,7 +41,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"nome\": \"Lucas Almeida Silva\", \n    \"dataNascimento\": \"1994-11-11\", \n    \"sexo\": \"M\", \n    \"email\": \"lucas@mail.com\"\n}",
+              "raw": "{\n    \"nome\": \"Lucas Almeida Silva\", \n    \"dataNascimento\": \"2000-02-11\", \n    \"sexo\": \"MASCULINO\", \n    \"email\": \"lucas@mail.com\",\n    \"senha\": \"senhaCorreta\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -33,30 +57,6 @@
               "port": "8080",
               "path": [
                 "usuarios"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Alterar Usuário",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"nome\": \"Lucas Almeida Silva\", \n    \"dataNascimento\": \"1994-11-11\", \n    \"sexo\": \"M\", \n    \"email\": \"lucas@mail.com\"\n}"
-            },
-            "url": {
-              "raw": "http://localhost:8080/usuarios/{{usuarioId}}",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "8080",
-              "path": [
-                "usuarios",
-                "{{usuarioId}}"
               ]
             }
           },
@@ -87,6 +87,15 @@
           "request": {
             "method": "PATCH",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"senha\": \"senhaCorreta\"\r\n}\r\n// \"senha\": \"senhaErrada\"",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "http://localhost:8080/usuarios/{{usuarioId}}/{{status}}",
               "protocol": "http",
@@ -115,7 +124,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"usuario\": \"lucas@mail.com\",\n    \"totalPago\": 125.20\n}",
+              "raw": "{\n    \"usuarioEmail\": \"lucas@mail.com\",\n    \"totalPago\": 12.5\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -145,6 +154,15 @@
           "request": {
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "http://localhost:8080/usuarios/{{usuarioId}}/ingressos/{{ingressoId}}",
               "protocol": "http",
@@ -195,7 +213,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"nome\": \"Meu Evento de Teste\", \n    \"paginaWebEvento\": \"https://www.meueventoteste.com\",\n    \"descricao\": \"Esse é um evento de teste para a minha plataforma. Vamos ter várias atrações\", \n    \"tipoEvento\": \"CULTURAL_ENTRETENIMENTO\",\n    \"modalidade\": \"PRESENCIAL\", \n    \"capacidadeMaxima\": 200, \n    \"dataInicio\": \"2026-01-30T18:50:00\", \n    \"dataFinal\": \"2026-01-30T19:30:00\"\n}",
+              "raw": "{\n    \"nome\": \"Meu Evento de Teste\", \n    \"paginaWebEvento\": \"https://www.meueventoteste.com\",\n    \"descricao\": \"Esse é um evento de teste para a minha plataforma. Vamos ter várias atrações\", \n    \"tipoEvento\": \"CULTURAL_ENTRETENIMENTO\",\n    \"modalidade\": \"PRESENCIAL\", \n    \"capacidadeMaxima\": 200, \n    \"dataInicio\": \"2026-08-29T18:50:00\", \n    \"dataFinal\": \"2026-08-30T19:30:00\",\n    \"local\": \"UNEX\",\n    \"precoIngresso\": \"12.50\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -203,7 +221,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/organizadores/{{usuarioId}}/eventos",
+              "raw": "http://localhost:8080/organizadores/{{organizadorId}}/eventos",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -211,7 +229,7 @@
               "port": "8080",
               "path": [
                 "organizadores",
-                "{{usuarioId}}",
+                "{{organizadorId}}",
                 "eventos"
               ]
             }
@@ -225,7 +243,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"nome\": \"Meu Evento de Teste\", \n    \"paginaWebEvento\": \"https://www.meueventoteste.com\",\n    \"descricao\": \"Esse é um evento de teste para a minha plataforma. Vamos ter várias atrações\", \n    \"tipoEvento\": \"CULTURAL_ENTRETENIMENTO\",\n    \"modalidade\": \"PRESENCIAL\", \n    \"capacidadeMaxima\": 200, \n    \"dataInicio\": \"2026-01-30T18:50:00\", \n    \"dataFinal\": \"2026-01-30T19:30:00\"\n}",
+              "raw": "{\n    \"nome\": \"Meu Evento de Teste\",\n    \"pagina\": \"www.meueventoteste.com\",\n    \"descricao\": \"Esse é um evento de teste para a minha plataforma. Vamos ter várias atrações\",\n    \"dataInicio\": \"2026-08-29T18:50:00\",\n    \"dataFinal\": \"2026-08-30T19:30:00\",\n    \"periodo\": \"29/08/2026 18:50  até 30/08/2026 19:30 \",\n    \"tipoEvento\": \"CULTURAL_ENTRETENIMENTO\",\n    \"eventoPrincipalId\": null,\n    \"modalidade\": \"PRESENCIAL\",\n    \"capacidadeMaxima\": 100,\n    \"local\": \"UNEX\",\n    \"precoIngresso\": 12.5,\n    \"estornaCancelamento\": true,\n    \"taxaEstorno\": 0.0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -233,7 +251,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/organizadores/{{organizadorId}}/eventos/{{eventId}}",
+              "raw": "http://localhost:8080/organizadores/{{organizadorId}}/eventos/{{eventoId}}",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -243,7 +261,7 @@
                 "organizadores",
                 "{{organizadorId}}",
                 "eventos",
-                "{{eventId}}"
+                "{{eventoId}}"
               ]
             }
           },
@@ -254,8 +272,17 @@
           "request": {
             "method": "PATCH",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
-              "raw": "http://localhost:8080/organizadores/{{organizadorId}}/eventos/{{status}}",
+              "raw": "http://localhost:8080/organizadores/{{organizadorId}}/eventos/{{eventoId}}/{{status}}",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -265,6 +292,7 @@
                 "organizadores",
                 "{{organizadorId}}",
                 "eventos",
+                "{{eventoId}}",
                 "{{status}}"
               ]
             }
@@ -323,7 +351,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"nome\": \"Lucas Almeida Silva\", \n    \"dataNascimento\": \"1994-11-11\", \n    \"sexo\": \"M\", \n    \"email\": \"lucas@mail.com\",\n    \"cnpj\": \"\", \n    \"razaoSocial\": \"\", \n    \"nomeFantasia\": \"\"\n}",
+              "raw": "{\n    \"nome\": \"João Marcelo Fontes\", \n    \"dataNascimento\": \"1989-09-14\", \n    \"sexo\": \"MASCULINO\", \n    \"email\": \"joao@mail.com\",\n    \"senha\": \"senhaCorreta\",\n    \"cnpj\": \"28.652.921/0001-58\", \n    \"razaoSocial\": \"EMPRESA LTDA\", \n    \"nomeFantasia\": \"Empresa das empresas\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -351,7 +379,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"nome\": \"Lucas Almeida Silva\", \n    \"dataNascimento\": \"1994-11-11\", \n    \"sexo\": \"M\", \n    \"email\": \"lucas@mail.com\",\n    \"cnpj\": \"\", \n    \"razaoSocial\": \"\", \n    \"nomeFantasia\": \"\"\n}",
+              "raw": "{\n    \"nome\": \"João Marcelo Fontes\",\n    \"dataNascimento\": \"1990-09-14\",\n    \"idade\": \"36 anos, 5 meses, 22 dias\",\n    \"sexo\": \"OUTRO\",\n    \"email\": \"lucas@mail.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -378,6 +406,15 @@
           "request": {
             "method": "PATCH",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"senha\": \"senhaCorreta\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "http://localhost:8080/organizadores/{{organizadorId}}/{{status}}",
               "protocol": "http",
