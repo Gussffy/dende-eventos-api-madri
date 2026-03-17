@@ -1,25 +1,41 @@
 package br.com.softhouse.dende.dto;
 
-import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.enums.TipoEvento;
 import br.com.softhouse.dende.model.enums.ModalidadeEvento;
 import java.time.LocalDateTime;
 
-// Classe DTO para receber os dados de um evento em requisições da API
-public class EventoRequestDTO {
+/**
+ * Classe DTO unificada para receber e enviar dados completos de um evento na API
+ */
+public class EventoDTO {
+    private Long id;
+    private Long organizadorId;
     private String nome;
     private String pagina;
     private String descricao;
     private LocalDateTime dataInicio;
     private LocalDateTime dataFinal;
+    private String periodo;
     private TipoEvento tipoEvento;
     private Long eventoPrincipalId;
     private ModalidadeEvento modalidade;
     private Integer capacidadeMaxima;
     private String local;
+    private Boolean ativo;
     private Double precoIngresso;
     private Boolean estornaCancelamento;
     private Double taxaEstorno;
+    private Integer ingressosVendidos;
+    private Integer ingressosDisponiveis;
+
+    public EventoDTO() {}
+
+    // Getters e Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Long getOrganizadorId() { return organizadorId; }
+    public void setOrganizadorId(Long organizadorId) { this.organizadorId = organizadorId; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -36,6 +52,9 @@ public class EventoRequestDTO {
     public LocalDateTime getDataFinal() { return dataFinal; }
     public void setDataFinal(LocalDateTime dataFinal) { this.dataFinal = dataFinal; }
 
+    public String getPeriodo() { return periodo; }
+    public void setPeriodo(String periodo) { this.periodo = periodo; }
+
     public TipoEvento getTipoEvento() { return tipoEvento; }
     public void setTipoEvento(TipoEvento tipoEvento) { this.tipoEvento = tipoEvento; }
 
@@ -51,6 +70,9 @@ public class EventoRequestDTO {
     public String getLocal() { return local; }
     public void setLocal(String local) { this.local = local; }
 
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+
     public Double getPrecoIngresso() { return precoIngresso; }
     public void setPrecoIngresso(Double precoIngresso) { this.precoIngresso = precoIngresso; }
 
@@ -60,22 +82,9 @@ public class EventoRequestDTO {
     public Double getTaxaEstorno() { return taxaEstorno; }
     public void setTaxaEstorno(Double taxaEstorno) { this.taxaEstorno = taxaEstorno; }
 
-    public Evento toEntity(Long organizadorId) {
-        Evento evento = new Evento();
-        evento.setOrganizadorId(organizadorId);
-        evento.setNome(this.nome);
-        evento.setPagina(this.pagina);
-        evento.setDescricao(this.descricao);
-        evento.setDataInicio(this.dataInicio);
-        evento.setDataFinal(this.dataFinal);
-        evento.setTipoEvento(this.tipoEvento);
-        evento.setEventoPrincipalId(this.eventoPrincipalId);
-        evento.setModalidade(this.modalidade);
-        evento.setCapacidadeMaxima(this.capacidadeMaxima);
-        evento.setLocal(this.local);
-        evento.setPrecoIngresso(this.precoIngresso);
-        evento.setEstornaCancelamento(this.estornaCancelamento);
-        evento.setTaxaEstorno(this.taxaEstorno);
-        return evento;
-    }
+    public Integer getIngressosVendidos() { return ingressosVendidos; }
+    public void setIngressosVendidos(Integer ingressosVendidos) { this.ingressosVendidos = ingressosVendidos; }
+
+    public Integer getIngressosDisponiveis() { return ingressosDisponiveis; }
+    public void setIngressosDisponiveis(Integer ingressosDisponiveis) { this.ingressosDisponiveis = ingressosDisponiveis; }
 }

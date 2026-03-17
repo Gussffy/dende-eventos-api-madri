@@ -1,7 +1,8 @@
 package br.com.softhouse.dende.dto;
 
-import br.com.softhouse.dende.model.Evento;
-
+/**
+ * DTO para envio de dados resumidos de um evento em listagens
+ */
 public class EventoResumoDTO {
     private Long id;
     private String nome;
@@ -12,24 +13,29 @@ public class EventoResumoDTO {
     private Integer capacidadeMaxima;
     private Boolean ativo;
 
-    // Construtor que recebe um objeto Evento e extrai os dados necessários para o resumo
-    public EventoResumoDTO(Evento evento) {
-        this.id = evento.getId();
-        this.nome = evento.getNome();
-        this.periodo = evento.getPeriodoFormatado();
-        this.local = evento.getLocal();
-        this.precoIngresso = evento.getPrecoIngresso();
-        this.ingressosVendidos = evento.getIngressosVendidos();
-        this.capacidadeMaxima = evento.getCapacidadeMaxima();
-        this.ativo = evento.getAtivo();
-    }
+    public EventoResumoDTO() {}
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
     public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+
     public String getPeriodo() { return periodo; }
+    public void setPeriodo(String periodo) { this.periodo = periodo; }
+
     public String getLocal() { return local; }
+    public void setLocal(String local) { this.local = local; }
+
     public Double getPrecoIngresso() { return precoIngresso; }
+    public void setPrecoIngresso(Double precoIngresso) { this.precoIngresso = precoIngresso; }
+
     public Integer getIngressosVendidos() { return ingressosVendidos; }
+    public void setIngressosVendidos(Integer ingressosVendidos) { this.ingressosVendidos = ingressosVendidos; }
+
     public Integer getCapacidadeMaxima() { return capacidadeMaxima; }
+    public void setCapacidadeMaxima(Integer capacidadeMaxima) { this.capacidadeMaxima = capacidadeMaxima; }
+
     public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 }

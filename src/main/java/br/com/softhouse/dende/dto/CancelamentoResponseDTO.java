@@ -1,6 +1,8 @@
 package br.com.softhouse.dende.dto;
 
-// DTO de resposta para o cancelamento de um ingresso
+/**
+ * DTO de resposta para o cancelamento de um ingresso
+ */
 public class CancelamentoResponseDTO {
     private String mensagem;
     private Double valorPago;
