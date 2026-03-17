@@ -11,26 +11,29 @@ import br.com.softhouse.dende.dto.IngressoDTO;
 import br.com.softhouse.dende.services.IngressoService;
 import java.util.List;
 
+/**
+ * CONTROLLER DE INGRESSOS
+ *
+ * Essa classe é responsável por receber as requisições HTTP relacionadas a ingressos, como compra, cancelamento e listagem.
+ * Ela atua como uma camada de apresentação, delegando a lógica de negócios para o IngressoService e formatando as respostas em um formato consistente (ApiResponse).
+ */
 @Controller
 @RequestMapping(path = "")
 public class IngressoController {
 
-    private final IngressoService ingressoService;
+    private final IngressoService ingressoService;// Injeção de dependência do serviço de ingressos
 
     public IngressoController() {
-        this.ingressoService = new IngressoService();
+        this.ingressoService = new IngressoService();// Instanciação do serviço de ingressos
     }
 
-    /**
-     * COMPRAR INGRESSO (US13)
-     *
-     * Endpoint: POST /organizadores/{organizadorId}/eventos/{eventoId}/ingressos
-     */
+    // Mapeia a rota POST /organizadores/{organizadorId}/eventos/{eventoId}/ingressos para o metodo comprar, que recebe o ID do organizador, o ID do evento e os dados da compra no corpo da requisição
     @PostMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}/ingressos")
     public ResponseEntity<ApiResponse<CompraResponseDTO>> comprar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @RequestBody CompraRequestDTO request) {
+        // Tenta processar a compra usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             if (request == null || request.getUsuarioEmail() == null || request.getUsuarioEmail().trim().isEmpty()) {
                 throw new IllegalArgumentException("Email do usuário é obrigatório");
@@ -55,15 +58,12 @@ public class IngressoController {
         }
     }
 
-    /**
-     * CANCELAR INGRESSO (US14)
-     *
-     * Endpoint: POST /usuarios/{usuarioId}/ingressos/{ingressoId}
-     */
+    // Mapeia a rota POST /usuarios/{usuarioId}/ingressos/{ingressoId} para o metodo cancelar, que recebe o ID do usuário e o ID do ingresso no caminho da requisição
     @PostMapping(path = "/usuarios/{usuarioId}/ingressos/{ingressoId}")
     public ResponseEntity<ApiResponse<CancelamentoResponseDTO>> cancelar(
             @PathVariable(parameter = "usuarioId") Long usuarioId,
             @PathVariable(parameter = "ingressoId") Long ingressoId) {
+        // Tenta processar o cancelamento usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             if (usuarioId == null || ingressoId == null) {
                 throw new IllegalArgumentException("ID do usuário e do ingresso são obrigatórios");
@@ -88,13 +88,10 @@ public class IngressoController {
         }
     }
 
-    /**
-     * LISTAR INGRESSOS DO USUÁRIO (US15)
-     *
-     * Endpoint: GET /usuarios/{usuarioId}/ingressos
-     */
+    // Mapeia a rota GET /usuarios/{usuarioId}/ingressos para o metodo listar, que recebe o ID do usuário no caminho da requisição
     @GetMapping(path = "/usuarios/{usuarioId}/ingressos")
     public ResponseEntity<ApiResponse<List<IngressoDTO>>> listar(@PathVariable(parameter = "usuarioId") Long usuarioId) {
+        // Tenta listar os ingressos do usuário usando o serviço, e retorna uma resposta formatada com ApiResponse contendo a lista de ingressos ou uma mensagem de erro em caso de falha
         try {
             if (usuarioId == null) {
                 throw new IllegalArgumentException("ID do usuário é obrigatório");

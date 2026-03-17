@@ -9,20 +9,28 @@ import br.com.softhouse.dende.dto.EventoResumoDTO;
 import br.com.softhouse.dende.services.EventoService;
 import java.util.List;
 
+/**
+ * CONTROLLER DE EVENTOS
+ *
+ * Essa classe é responsável por receber as requisições HTTP relacionadas a eventos, como cadastro, atualização, ativação/desativação e listagem.
+ * Ela atua como uma camada de apresentação, delegando a lógica de negócios para o EventoService e formatando as respostas em um formato consistente (ApiResponse).
+ */
 @Controller
 @RequestMapping(path = "")
 public class EventoController {
 
-    private final EventoService eventoService;
+    private final EventoService eventoService; // Injeção de dependência do serviço de eventos
 
     public EventoController() {
-        this.eventoService = new EventoService();
+        this.eventoService = new EventoService();// Instanciação do serviço de eventos
     }
 
+    // Mapeia a rota POST /organizadores/{organizadorId}/eventos para o metodo cadastrar, que recebe o ID do organizador e os dados do evento no corpo da requisição
     @PostMapping(path = "/organizadores/{organizadorId}/eventos")
     public ResponseEntity<ApiResponse<EventoDTO>> cadastrar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @RequestBody EventoDTO dto) {
+        // Tenta cadastrar o evento usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             EventoDTO response = eventoService.cadastrar(organizadorId, dto);
             ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
@@ -37,11 +45,13 @@ public class EventoController {
         }
     }
 
+    // Mapeia a rota PUT /organizadores/{organizadorId}/eventos/{eventoId} para o metodo alterar, que recebe o ID do organizador, o ID do evento e os dados atualizados do evento no corpo da requisição
     @PutMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}")
     public ResponseEntity<ApiResponse<EventoDTO>> alterar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @RequestBody EventoDTO dto) {
+        // Tenta atualizar o evento usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             EventoDTO response = eventoService.atualizar(organizadorId, eventoId, dto);
             ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
@@ -56,11 +66,13 @@ public class EventoController {
         }
     }
 
+    // Mapeia a rota PATCH /organizadores/{organizadorId}/eventos/{eventoId}/{status} para o metodo alterarStatusEvento, que recebe o ID do organizador, o ID do evento e o novo status (ativo/inativo) como parâmetros de caminho
     @PatchMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}/{status}")
     public ResponseEntity<ApiResponse<EventoDTO>> alterarStatusEvento(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @PathVariable(parameter = "status") boolean ativar) {
+        // Tenta ativar ou desativar o evento usando o serviço, e retorna uma resposta formatada com ApiResponse indicando o resultado da operação
         try {
             EventoDTO response;
             String operacao;
@@ -85,9 +97,11 @@ public class EventoController {
         }
     }
 
+    // Mapeia a rota GET /organizadores/{organizadorId}/eventos para o metodo listarDoOrganizador, que recebe o ID do organizador como parâmetro de caminho e retorna uma lista de resumos dos eventos desse organizador
     @GetMapping(path = "/organizadores/{organizadorId}/eventos")
     public ResponseEntity<ApiResponse<List<EventoResumoDTO>>> listarDoOrganizador(
             @PathVariable(parameter = "organizadorId") Long organizadorId) {
+        // Tenta listar os eventos do organizador usando o serviço, e retorna uma resposta formatada com ApiResponse contendo a lista de resumos dos eventos ou uma mensagem de erro em caso de falha
         try {
             List<EventoResumoDTO> resumos = eventoService.listarPorOrganizador(organizadorId);
             ApiResponse<List<EventoResumoDTO>> apiResponse = new ApiResponse<>(
@@ -102,8 +116,10 @@ public class EventoController {
         }
     }
 
+    // Mapeia a rota GET /eventos para o metodo feed, que retorna uma lista de eventos ativos disponíveis para os usuários
     @GetMapping(path = "/eventos")
     public ResponseEntity<ApiResponse<List<EventoDTO>>> feed() {
+        // Tenta obter o feed de eventos ativos usando o serviço, e retorna uma resposta formatada com ApiResponse contendo a lista de eventos ou uma mensagem de erro em caso de falha
         try {
             List<EventoDTO> response = eventoService.feedAtivos();
             ApiResponse<List<EventoDTO>> apiResponse = new ApiResponse<>(

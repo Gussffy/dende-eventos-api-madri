@@ -3,6 +3,11 @@ package br.com.softhouse.dende.mappers;
 import br.com.softhouse.dende.dto.OrganizadorDTO;
 import br.com.softhouse.dende.model.Organizador;
 
+/**
+ * Mapper para converter entre as classes de modelo (entidade) e as classes de DTO (Data Transfer Object).
+ * Esta classe é responsável por transformar os dados entre as camadas de apresentação (DTOs) e a camada de negócio (entidades).
+ */
+
 // Mapper para converter entre Organizador e OrganizadorDTO
 public class OrganizadorMapper {
 

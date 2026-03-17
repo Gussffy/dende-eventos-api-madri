@@ -4,6 +4,11 @@ import br.com.softhouse.dende.dto.EventoDTO;
 import br.com.softhouse.dende.dto.EventoResumoDTO;
 import br.com.softhouse.dende.model.Evento;
 
+/**
+ * Mapper para converter entre as classes de modelo (entidade) e as classes de DTO (Data Transfer Object).
+ * Esta classe é responsável por transformar os dados entre as camadas de apresentação (DTOs) e a camada de negócio (entidades).
+ */
+
 // Mapper para converter entre Evento, EventoDTO e EventoResumoDTO
 public class EventoMapper {
 

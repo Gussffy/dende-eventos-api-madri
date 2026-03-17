@@ -1,9 +1,10 @@
 package br.com.softhouse.dende.dto;
 
 /**
-    Classe genérica para padronizar todas as respostas da API
-    <T> Tipo dos dados retornados em caso de sucesso
-
+ * API RESPONSE
+ *
+ * Classe genérica para padronizar as respostas das APIs, encapsulando informações como mensagem, status code, dados (em caso de sucesso) e erro (em caso de falha).
+ * Essa classe é utilizada em todas as respostas dos controllers para garantir consistência e facilitar o tratamento de erros e sucesso nas requisições.
  */
 
 public class ApiResponse<T> {

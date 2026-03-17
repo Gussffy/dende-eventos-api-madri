@@ -9,20 +9,19 @@ import br.com.softhouse.dende.dto.StatusChangeRequestDTO;
 import br.com.softhouse.dende.services.UsuarioService;
 
 /**
- *     Controlador de Usuários
+ * CONTROLLER DE USUÁRIOS
  *
- *     Esta classe é responsável por RECEBER as requisições HTTP relacionadas a usuários
- *     e DELEGAR para o serviço de usuários (UsuarioService) a execução das regras de negócio.
+ * Essa classe é responsável por receber as requisições HTTP relacionadas a usuários, como cadastro, atualização, ativação/desativação e visualização.
+ * Ela atua como uma camada de apresentação, delegando a lógica de negócios para o UsuarioService e formatando as respostas em um formato consistente (ApiResponse).
  */
 @Controller
 @RequestMapping(path = "/usuarios")
 public class UsuarioController {
 
-    // Injeção de dependência do serviço de usuários
-    private final UsuarioService usuarioService;
+    private final UsuarioService usuarioService;// Injeção de dependência do serviço de usuários
 
     public UsuarioController() {
-        this.usuarioService = new UsuarioService();
+        this.usuarioService = new UsuarioService();// Instanciação do serviço de usuários
     }
 
     // Mapeia a requisição POST /usuarios para cadastrar um novo usuário
@@ -112,7 +111,7 @@ public class UsuarioController {
                     response, "Usuário " + operacao + " com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
-
+            // Se ocorrer um erro, verifica se é por senha incorreta ou outro motivo e retorna a resposta adequada
         } catch (IllegalArgumentException e) {
             int status = e.getMessage().contains("Senha incorreta") ? 401 : 400;
             String erro = e.getMessage().contains("Senha incorreta") ? "Unauthorized" : "Bad Request";
