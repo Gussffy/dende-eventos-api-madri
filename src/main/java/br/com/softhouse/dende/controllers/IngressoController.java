@@ -4,10 +4,10 @@ import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
 import br.com.softhouse.dende.dto.ApiResponse;
-import br.com.softhouse.dende.dto.IngressoRequestDTO;
-import br.com.softhouse.dende.dto.IngressoResponseDTO;
+import br.com.softhouse.dende.dto.CompraRequestDTO;
 import br.com.softhouse.dende.dto.CompraResponseDTO;
 import br.com.softhouse.dende.dto.CancelamentoResponseDTO;
+import br.com.softhouse.dende.dto.IngressoDTO;
 import br.com.softhouse.dende.services.IngressoService;
 import java.util.List;
 
@@ -21,11 +21,16 @@ public class IngressoController {
         this.ingressoService = new IngressoService();
     }
 
+    /**
+     * COMPRAR INGRESSO (US13)
+     *
+     * Endpoint: POST /organizadores/{organizadorId}/eventos/{eventoId}/ingressos
+     */
     @PostMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}/ingressos")
     public ResponseEntity<ApiResponse<CompraResponseDTO>> comprar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
-            @RequestBody IngressoRequestDTO request) {
+            @RequestBody CompraRequestDTO request) {
         try {
             if (request == null || request.getUsuarioEmail() == null || request.getUsuarioEmail().trim().isEmpty()) {
                 throw new IllegalArgumentException("Email do usuário é obrigatório");
@@ -50,6 +55,11 @@ public class IngressoController {
         }
     }
 
+    /**
+     * CANCELAR INGRESSO (US14)
+     *
+     * Endpoint: POST /usuarios/{usuarioId}/ingressos/{ingressoId}
+     */
     @PostMapping(path = "/usuarios/{usuarioId}/ingressos/{ingressoId}")
     public ResponseEntity<ApiResponse<CancelamentoResponseDTO>> cancelar(
             @PathVariable(parameter = "usuarioId") Long usuarioId,
@@ -78,25 +88,30 @@ public class IngressoController {
         }
     }
 
+    /**
+     * LISTAR INGRESSOS DO USUÁRIO (US15)
+     *
+     * Endpoint: GET /usuarios/{usuarioId}/ingressos
+     */
     @GetMapping(path = "/usuarios/{usuarioId}/ingressos")
-    public ResponseEntity<ApiResponse<List<IngressoResponseDTO>>> listar(@PathVariable(parameter = "usuarioId") Long usuarioId) {
+    public ResponseEntity<ApiResponse<List<IngressoDTO>>> listar(@PathVariable(parameter = "usuarioId") Long usuarioId) {
         try {
             if (usuarioId == null) {
                 throw new IllegalArgumentException("ID do usuário é obrigatório");
             }
 
-            List<IngressoResponseDTO> ingressos = ingressoService.listarPorUsuario(usuarioId);
-            ApiResponse<List<IngressoResponseDTO>> apiResponse = new ApiResponse<>(
+            List<IngressoDTO> ingressos = ingressoService.listarPorUsuario(usuarioId);
+            ApiResponse<List<IngressoDTO>> apiResponse = new ApiResponse<>(
                     ingressos, "Ingressos listados com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
         } catch (IllegalArgumentException e) {
-            ApiResponse<List<IngressoResponseDTO>> apiResponse = new ApiResponse<>(
+            ApiResponse<List<IngressoDTO>> apiResponse = new ApiResponse<>(
                     e.getMessage(), 404, "Not Found"
             );
             return ResponseEntity.status(404, apiResponse);
         } catch (Exception e) {
-            ApiResponse<List<IngressoResponseDTO>> apiResponse = new ApiResponse<>(
+            ApiResponse<List<IngressoDTO>> apiResponse = new ApiResponse<>(
                     "Erro interno ao listar ingressos: " + e.getMessage(),
                     500, "Internal Server Error"
             );

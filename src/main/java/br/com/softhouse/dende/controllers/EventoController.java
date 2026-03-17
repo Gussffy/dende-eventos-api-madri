@@ -4,8 +4,7 @@ import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
 import br.com.softhouse.dende.dto.ApiResponse;
-import br.com.softhouse.dende.dto.EventoRequestDTO;
-import br.com.softhouse.dende.dto.EventoResponseDTO;
+import br.com.softhouse.dende.dto.EventoDTO;
 import br.com.softhouse.dende.dto.EventoResumoDTO;
 import br.com.softhouse.dende.services.EventoService;
 import java.util.List;
@@ -21,17 +20,17 @@ public class EventoController {
     }
 
     @PostMapping(path = "/organizadores/{organizadorId}/eventos")
-    public ResponseEntity<ApiResponse<EventoResponseDTO>> cadastrar(
+    public ResponseEntity<ApiResponse<EventoDTO>> cadastrar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
-            @RequestBody EventoRequestDTO request) {
+            @RequestBody EventoDTO dto) {
         try {
-            EventoResponseDTO response = eventoService.cadastrar(organizadorId, request);
-            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
+            EventoDTO response = eventoService.cadastrar(organizadorId, dto);
+            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     response, "Evento cadastrado com sucesso", 201
             );
             return ResponseEntity.status(201, apiResponse);
         } catch (IllegalArgumentException e) {
-            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
+            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     e.getMessage(), 400, "Bad Request"
             );
             return ResponseEntity.status(400, apiResponse);
@@ -39,18 +38,18 @@ public class EventoController {
     }
 
     @PutMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}")
-    public ResponseEntity<ApiResponse<EventoResponseDTO>> alterar(
+    public ResponseEntity<ApiResponse<EventoDTO>> alterar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
-            @RequestBody EventoRequestDTO request) {
+            @RequestBody EventoDTO dto) {
         try {
-            EventoResponseDTO response = eventoService.atualizar(organizadorId, eventoId, request);
-            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
+            EventoDTO response = eventoService.atualizar(organizadorId, eventoId, dto);
+            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     response, "Evento atualizado com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
         } catch (IllegalArgumentException e) {
-            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
+            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     e.getMessage(), 400, "Bad Request"
             );
             return ResponseEntity.status(400, apiResponse);
@@ -58,12 +57,12 @@ public class EventoController {
     }
 
     @PatchMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}/{status}")
-    public ResponseEntity<ApiResponse<EventoResponseDTO>> alterarStatusEvento(
+    public ResponseEntity<ApiResponse<EventoDTO>> alterarStatusEvento(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @PathVariable(parameter = "status") boolean ativar) {
         try {
-            EventoResponseDTO response;
+            EventoDTO response;
             String operacao;
 
             if (ativar) {
@@ -74,12 +73,12 @@ public class EventoController {
                 operacao = "desativado";
             }
 
-            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
+            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     response, "Evento " + operacao + " com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
         } catch (IllegalArgumentException e) {
-            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
+            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     e.getMessage(), 400, "Bad Request"
             );
             return ResponseEntity.status(400, apiResponse);
@@ -104,15 +103,15 @@ public class EventoController {
     }
 
     @GetMapping(path = "/eventos")
-    public ResponseEntity<ApiResponse<List<EventoResponseDTO>>> feed() {
+    public ResponseEntity<ApiResponse<List<EventoDTO>>> feed() {
         try {
-            List<EventoResponseDTO> response = eventoService.feedAtivos();
-            ApiResponse<List<EventoResponseDTO>> apiResponse = new ApiResponse<>(
+            List<EventoDTO> response = eventoService.feedAtivos();
+            ApiResponse<List<EventoDTO>> apiResponse = new ApiResponse<>(
                     response, "Feed de eventos carregado", 200
             );
             return ResponseEntity.ok(apiResponse);
         } catch (Exception e) {
-            ApiResponse<List<EventoResponseDTO>> apiResponse = new ApiResponse<>(
+            ApiResponse<List<EventoDTO>> apiResponse = new ApiResponse<>(
                     e.getMessage(), 400, "Bad Request"
             );
             return ResponseEntity.status(400, apiResponse);
