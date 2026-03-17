@@ -1,12 +1,12 @@
 package br.com.softhouse.dende.services;
 
-import br.com.softhouse.dende.dto.EventoRequestDTO;
-import br.com.softhouse.dende.dto.EventoResponseDTO;
+import br.com.softhouse.dende.dto.EventoDTO;
 import br.com.softhouse.dende.dto.EventoResumoDTO;
 import br.com.softhouse.dende.mappers.EventoMapper;
 import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.Organizador;
 import br.com.softhouse.dende.model.Ingresso;
+import br.com.softhouse.dende.model.builders.EventoBuilder;
 import br.com.softhouse.dende.model.enums.StatusIngresso;
 import br.com.softhouse.dende.repositories.EventoRepository;
 import br.com.softhouse.dende.repositories.IngressoRepository;
@@ -39,7 +39,7 @@ public class EventoService {
         this.ingressoRepository = IngressoRepository.getInstance();
     }
 
-    public EventoResponseDTO cadastrar(Long organizadorId, EventoRequestDTO request) throws IllegalArgumentException {
+    public EventoDTO cadastrar(Long organizadorId, EventoDTO dto) throws IllegalArgumentException {
         // Verificar se o organizador existe e está ativo
         Organizador org = organizadorRepository.buscarPorId(organizadorId);
         if (org == null) {
@@ -50,8 +50,8 @@ public class EventoService {
         }
 
         // Validar evento principal (se existir)
-        if (request.getEventoPrincipalId() != null) {
-            Evento principal = eventoRepository.buscarPorId(request.getEventoPrincipalId());
+        if (dto.getEventoPrincipalId() != null) {
+            Evento principal = eventoRepository.buscarPorId(dto.getEventoPrincipalId());
             if (principal == null) {
                 throw new IllegalArgumentException("Evento principal não encontrado");
             }
@@ -60,8 +60,24 @@ public class EventoService {
             }
         }
 
-        // Converter DTO para entidade usando o mapper
-        Evento evento = EventoMapper.toEntity(request, organizadorId);
+        Evento evento = EventoBuilder.builder()
+                .organizadorId(organizadorId)
+                .nome(dto.getNome())
+                .pagina(dto.getPagina())
+                .descricao(dto.getDescricao())
+                .dataInicio(dto.getDataInicio())
+                .dataFinal(dto.getDataFinal())
+                .tipoEvento(dto.getTipoEvento())
+                .eventoPrincipalId(dto.getEventoPrincipalId())
+                .modalidade(dto.getModalidade())
+                .capacidadeMaxima(dto.getCapacidadeMaxima())
+                .local(dto.getLocal())
+                .precoIngresso(dto.getPrecoIngresso())
+                .estornaCancelamento(dto.getEstornaCancelamento())
+                .taxaEstorno(dto.getTaxaEstorno())
+                .ativo(dto.getAtivo() != null ? dto.getAtivo() : false)
+                .ingressosVendidos(dto.getIngressosVendidos() != null ? dto.getIngressosVendidos() : 0)
+                .build();
 
         // US7: Validar datas
         if (!evento.validarDatas()) {
@@ -76,15 +92,15 @@ public class EventoService {
         evento = eventoRepository.salvar(evento);
 
         // Retornar DTO de resposta
-        return EventoMapper.toResponseDTO(evento);
+        return EventoMapper.toDTO(evento);
     }
 
-    public EventoResponseDTO buscarPorId(Long id) throws IllegalArgumentException {
+    public EventoDTO buscarPorId(Long id) throws IllegalArgumentException {
         Evento evento = eventoRepository.buscarPorId(id);
         if (evento == null) {
             throw new IllegalArgumentException("Evento não encontrado");
         }
-        return EventoMapper.toResponseDTO(evento);
+        return EventoMapper.toDTO(evento);
     }
 
     public Evento buscarEntidadePorId(Long id) throws IllegalArgumentException {
@@ -95,7 +111,7 @@ public class EventoService {
         return evento;
     }
 
-    public EventoResponseDTO atualizar(Long organizadorId, Long eventoId, EventoRequestDTO request) throws IllegalArgumentException {
+    public EventoDTO atualizar(Long organizadorId, Long eventoId, EventoDTO dto) throws IllegalArgumentException {
         Evento existente = buscarEntidadePorId(eventoId);
 
         // Verificar se o evento pertence ao organizador
@@ -109,8 +125,8 @@ public class EventoService {
         }
 
         // Validar evento principal se foi alterado
-        if (request.getEventoPrincipalId() != null && !request.getEventoPrincipalId().equals(existente.getEventoPrincipalId())) {
-            Evento principal = eventoRepository.buscarPorId(request.getEventoPrincipalId());
+        if (dto.getEventoPrincipalId() != null && !dto.getEventoPrincipalId().equals(existente.getEventoPrincipalId())) {
+            Evento principal = eventoRepository.buscarPorId(dto.getEventoPrincipalId());
             if (principal == null) {
                 throw new IllegalArgumentException("Evento principal não encontrado");
             }
@@ -120,7 +136,7 @@ public class EventoService {
         }
 
         // Atualizar entidade com dados do DTO
-        Evento eventoAtualizado = EventoMapper.updateEntity(existente, request);
+        Evento eventoAtualizado = EventoMapper.updateEntity(existente, dto);
 
         // Validar datas novamente se foram alteradas
         if (!eventoAtualizado.validarDatas()) {
@@ -131,10 +147,10 @@ public class EventoService {
         eventoRepository.atualizar(eventoAtualizado);
 
         // Retornar DTO de resposta
-        return EventoMapper.toResponseDTO(eventoAtualizado);
+        return EventoMapper.toDTO(eventoAtualizado);
     }
 
-    public EventoResponseDTO ativar(Long organizadorId, Long eventoId) throws IllegalArgumentException {
+    public EventoDTO ativar(Long organizadorId, Long eventoId) throws IllegalArgumentException {
         Evento evento = buscarEntidadePorId(eventoId);
 
         if (!evento.getOrganizadorId().equals(organizadorId)) {
@@ -152,10 +168,10 @@ public class EventoService {
         evento.setAtivo(true);
         eventoRepository.atualizar(evento);
 
-        return EventoMapper.toResponseDTO(evento);
+        return EventoMapper.toDTO(evento);
     }
 
-    public EventoResponseDTO desativar(Long organizadorId, Long eventoId) throws IllegalArgumentException {
+    public EventoDTO desativar(Long organizadorId, Long eventoId) throws IllegalArgumentException {
         Evento evento = buscarEntidadePorId(eventoId);
 
         if (!evento.getOrganizadorId().equals(organizadorId)) {
@@ -181,7 +197,7 @@ public class EventoService {
         evento.setAtivo(false);
         eventoRepository.atualizar(evento);
 
-        return EventoMapper.toResponseDTO(evento);
+        return EventoMapper.toDTO(evento);
     }
 
     public List<EventoResumoDTO> listarPorOrganizador(Long organizadorId) {
@@ -190,7 +206,7 @@ public class EventoService {
                 .collect(Collectors.toList());
     }
 
-    public List<EventoResponseDTO> feedAtivos() {
+    public List<EventoDTO> feedAtivos() {
         List<Evento> eventos = eventoRepository.listarAtivos();
 
         // US12: Ordenar por data de início e nome
@@ -203,7 +219,7 @@ public class EventoService {
         });
 
         return eventos.stream()
-                .map(EventoMapper::toResponseDTO)
+                .map(EventoMapper::toDTO)
                 .collect(Collectors.toList());
     }
 

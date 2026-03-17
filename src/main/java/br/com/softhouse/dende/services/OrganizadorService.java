@@ -1,7 +1,6 @@
 package br.com.softhouse.dende.services;
 
-import br.com.softhouse.dende.dto.OrganizadorRequestDTO;
-import br.com.softhouse.dende.dto.OrganizadorResponseDTO;
+import br.com.softhouse.dende.dto.OrganizadorDTO;
 import br.com.softhouse.dende.mappers.OrganizadorMapper;
 import br.com.softhouse.dende.model.Organizador;
 import br.com.softhouse.dende.repositories.OrganizadorRepository;
@@ -29,52 +28,52 @@ public class OrganizadorService {
         this.eventoRepository = EventoRepository.getInstance();
     }
 
-    public OrganizadorResponseDTO cadastrar(OrganizadorRequestDTO request) throws IllegalArgumentException {
+    public OrganizadorDTO cadastrar(OrganizadorDTO dto) throws IllegalArgumentException {
         // Validações de campos obrigatórios
-        if (request.getNome() == null || request.getNome().trim().isEmpty()) {
+        if (dto.getNome() == null || dto.getNome().trim().isEmpty()) {
             throw new IllegalArgumentException("Nome é obrigatório");
         }
-        if (request.getDataNascimento() == null) {
+        if (dto.getDataNascimento() == null) {
             throw new IllegalArgumentException("Data de nascimento é obrigatória");
         }
-        if (request.getSexo() == null) {
+        if (dto.getSexo() == null) {
             throw new IllegalArgumentException("Sexo é obrigatório");
         }
-        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+        if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email é obrigatório");
         }
-        if (request.getSenha() == null || request.getSenha().trim().isEmpty()) {
+        if (dto.getSenha() == null || dto.getSenha().trim().isEmpty()) {
             throw new IllegalArgumentException("Senha é obrigatória");
         }
 
         // Verificar se email já existe
-        if (organizadorRepository.emailExiste(request.getEmail())) {
+        if (organizadorRepository.emailExiste(dto.getEmail())) {
             throw new IllegalArgumentException("Email já está em uso");
         }
 
         // Se informou CNPJ, verificar se já existe (US2 - CNPJ único se fornecido)
-        if (request.getCnpj() != null && !request.getCnpj().isEmpty()) {
-            if (organizadorRepository.cnpjExiste(request.getCnpj())) {
+        if (dto.getCnpj() != null && !dto.getCnpj().isEmpty()) {
+            if (organizadorRepository.cnpjExiste(dto.getCnpj())) {
                 throw new IllegalArgumentException("CNPJ já está em uso");
             }
         }
 
         // Converter DTO para entidade
-        Organizador organizador = OrganizadorMapper.toEntity(request);
+        Organizador organizador = OrganizadorMapper.toEntity(dto);
 
         // Salvar no repositório
         organizador = organizadorRepository.salvar(organizador);
 
         // Retornar DTO de resposta
-        return OrganizadorMapper.toResponseDTO(organizador);
+        return OrganizadorMapper.toDTO(organizador);
     }
 
-    public OrganizadorResponseDTO buscarPorId(Long id) throws IllegalArgumentException {
+    public OrganizadorDTO buscarPorId(Long id) throws IllegalArgumentException {
         Organizador organizador = organizadorRepository.buscarPorId(id);
         if (organizador == null) {
             throw new IllegalArgumentException("Organizador não encontrado");
         }
-        return OrganizadorMapper.toResponseDTO(organizador);
+        return OrganizadorMapper.toDTO(organizador);
     }
 
     public Organizador buscarEntidadePorId(Long id) throws IllegalArgumentException {
@@ -93,7 +92,7 @@ public class OrganizadorService {
         return organizador;
     }
 
-    public OrganizadorResponseDTO atualizar(Long id, OrganizadorRequestDTO request) throws IllegalArgumentException {
+    public OrganizadorDTO atualizar(Long id, OrganizadorDTO dto) throws IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("ID do organizador é obrigatório");
         }
@@ -102,28 +101,28 @@ public class OrganizadorService {
         Organizador existente = buscarEntidadePorId(id);
 
         // Validar se email foi alterado (US3 - não permitido)
-        if (request.getEmail() != null && !request.getEmail().equals(existente.getEmail())) {
+        if (dto.getEmail() != null && !dto.getEmail().equals(existente.getEmail())) {
             throw new IllegalArgumentException("Não é permitido alterar o email");
         }
 
         // Se alterou CNPJ, verificar se já existe
-        if (request.getCnpj() != null && !request.getCnpj().equals(existente.getCnpj())) {
-            if (organizadorRepository.cnpjExiste(request.getCnpj())) {
+        if (dto.getCnpj() != null && !dto.getCnpj().equals(existente.getCnpj())) {
+            if (organizadorRepository.cnpjExiste(dto.getCnpj())) {
                 throw new IllegalArgumentException("CNPJ já está em uso");
             }
         }
 
         // Atualizar campos (o mapper já valida o email)
-        Organizador organizadorAtualizado = OrganizadorMapper.updateEntity(existente, request);
+        Organizador organizadorAtualizado = OrganizadorMapper.updateEntity(existente, dto);
 
         // Salvar alterações
         organizadorRepository.atualizar(organizadorAtualizado);
 
         // Retornar DTO de resposta
-        return OrganizadorMapper.toResponseDTO(organizadorAtualizado);
+        return OrganizadorMapper.toDTO(organizadorAtualizado);
     }
 
-    public OrganizadorResponseDTO ativarComSenha(Long id, String senha) throws IllegalArgumentException {
+    public OrganizadorDTO ativarComSenha(Long id, String senha) throws IllegalArgumentException {
         Organizador organizador = buscarEntidadePorId(id);
 
         // Validar senha (US6)
@@ -138,10 +137,10 @@ public class OrganizadorService {
         organizador.setAtivo(true);
         organizadorRepository.atualizar(organizador);
 
-        return OrganizadorMapper.toResponseDTO(organizador);
+        return OrganizadorMapper.toDTO(organizador);
     }
 
-    public OrganizadorResponseDTO desativarComSenha(Long id, String senha) throws IllegalArgumentException {
+    public OrganizadorDTO desativarComSenha(Long id, String senha) throws IllegalArgumentException {
         Organizador organizador = buscarEntidadePorId(id);
 
         // Validar senha
@@ -161,7 +160,7 @@ public class OrganizadorService {
         organizador.setAtivo(false);
         organizadorRepository.atualizar(organizador);
 
-        return OrganizadorMapper.toResponseDTO(organizador);
+        return OrganizadorMapper.toDTO(organizador);
     }
 
     public boolean emailExiste(String email) {

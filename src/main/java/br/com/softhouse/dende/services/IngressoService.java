@@ -1,6 +1,7 @@
 package br.com.softhouse.dende.services;
 
 import br.com.softhouse.dende.dto.*;
+import br.com.softhouse.dende.mappers.IngressoMapper;
 import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.Ingresso;
 import br.com.softhouse.dende.model.Usuario;
@@ -34,7 +35,7 @@ public class IngressoService {
         this.usuarioRepository = UsuarioRepository.getInstance();
     }
 
-    public CompraResponseDTO comprar(Long organizadorId, Long eventoId, IngressoRequestDTO request) throws IllegalArgumentException {
+    public CompraResponseDTO comprar(Long organizadorId, Long eventoId, CompraRequestDTO request) throws IllegalArgumentException {
 
         // Validar usuário
         Usuario usuario = usuarioRepository.buscarPorEmail(request.getUsuarioEmail());
@@ -93,7 +94,7 @@ public class IngressoService {
         List<String> codigos = new ArrayList<>();
 
         // Criar ingresso principal
-        Ingresso ingressoPrincipal = new Ingresso(usuario.getId(), eventoId, evento.getPrecoIngresso());
+        Ingresso ingressoPrincipal = IngressoMapper.createIngresso(usuario.getId(), eventoId, evento.getPrecoIngresso());
         ingressoRepository.salvar(ingressoPrincipal);
         evento.venderIngresso();
         eventoRepository.atualizar(evento);
@@ -101,9 +102,8 @@ public class IngressoService {
 
         // Se for evento vinculado, criar ingresso para evento principal
         if (principal != null && principal.getAtivo() && principal.temIngressosDisponiveis()) {
-            Ingresso ingressoVinculado = new Ingresso(usuario.getId(), principal.getId(), principal.getPrecoIngresso());
-            ingressoVinculado.setEventoVinculadoId(eventoId);
-            ingressoVinculado.setIngressoPrincipal(false);
+            Ingresso ingressoVinculado = IngressoMapper.createIngressoVinculado(
+                    usuario.getId(), principal.getId(), eventoId, principal.getPrecoIngresso());
             ingressoRepository.salvar(ingressoVinculado);
             principal.venderIngresso();
             eventoRepository.atualizar(principal);
@@ -191,7 +191,7 @@ public class IngressoService {
         return evento.calcularReembolso(ingresso.getValorPago());
     }
 
-    public List<IngressoResponseDTO> listarPorUsuario(Long usuarioId) throws IllegalArgumentException {
+    public List<IngressoDTO> listarPorUsuario(Long usuarioId) throws IllegalArgumentException {
 
         Usuario usuario = usuarioRepository.buscarPorId(usuarioId);
         if (usuario == null) {
@@ -218,7 +218,7 @@ public class IngressoService {
         return ingressos.stream()
                 .map(i -> {
                     Evento e = eventoRepository.buscarPorId(i.getEventoId());
-                    return new IngressoResponseDTO(i, e.getNome(), e.getDataInicio(), e.getLocal());
+                    return IngressoMapper.toDTO(i, e);
                 })
                 .collect(Collectors.toList());
     }

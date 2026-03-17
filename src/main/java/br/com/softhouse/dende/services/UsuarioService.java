@@ -1,7 +1,6 @@
 package br.com.softhouse.dende.services;
 
-import br.com.softhouse.dende.dto.UsuarioRequestDTO;
-import br.com.softhouse.dende.dto.UsuarioResponseDTO;
+import br.com.softhouse.dende.dto.UsuarioDTO;
 import br.com.softhouse.dende.mappers.UsuarioMapper;
 import br.com.softhouse.dende.model.Usuario;
 import br.com.softhouse.dende.repositories.UsuarioRepository;
@@ -23,50 +22,49 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
 
     public UsuarioService() {
-
         this.usuarioRepository = UsuarioRepository.getInstance();
     }
 
     // Metodo para cadastrar um novo usuário
-    public UsuarioResponseDTO cadastrar(UsuarioRequestDTO request) throws IllegalArgumentException {
+    public UsuarioDTO cadastrar(UsuarioDTO dto) throws IllegalArgumentException {
         // Validar campos obrigatórios
-        if (request.getNome() == null || request.getNome().trim().isEmpty()) {
+        if (dto.getNome() == null || dto.getNome().trim().isEmpty()) {
             throw new IllegalArgumentException("Nome é obrigatório");
         }
-        if (request.getDataNascimento() == null) {
+        if (dto.getDataNascimento() == null) {
             throw new IllegalArgumentException("Data de nascimento é obrigatória");
         }
-        if (request.getSexo() == null) {
+        if (dto.getSexo() == null) {
             throw new IllegalArgumentException("Sexo é obrigatório");
         }
-        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+        if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) {
             throw new IllegalArgumentException("Email é obrigatório");
         }
-        if (request.getSenha() == null || request.getSenha().trim().isEmpty()) {
+        if (dto.getSenha() == null || dto.getSenha().trim().isEmpty()) {
             throw new IllegalArgumentException("Senha é obrigatória");
         }
 
         // Verificar se email já existe (US1 - emails únicos)
-        if (usuarioRepository.emailExiste(request.getEmail())) {
+        if (usuarioRepository.emailExiste(dto.getEmail())) {
             throw new IllegalArgumentException("Email já está em uso");
         }
 
         // Converter DTO para entidade
-        Usuario usuario = UsuarioMapper.toEntity(request);
+        Usuario usuario = UsuarioMapper.toEntity(dto);
 
         // Salvar no repositório
         usuario = usuarioRepository.salvar(usuario);
 
         // Retornar DTO de resposta
-        return UsuarioMapper.toResponseDTO(usuario);
+        return UsuarioMapper.toDTO(usuario);
     }
 
-    public UsuarioResponseDTO buscarPorId(Long id) throws IllegalArgumentException {
+    public UsuarioDTO buscarPorId(Long id) throws IllegalArgumentException {
         Usuario usuario = usuarioRepository.buscarPorId(id);
         if (usuario == null) {
             throw new IllegalArgumentException("Usuário não encontrado");
         }
-        return UsuarioMapper.toResponseDTO(usuario);
+        return UsuarioMapper.toDTO(usuario);
     }
 
     public Usuario buscarEntidadePorId(Long id) throws IllegalArgumentException {
@@ -86,7 +84,7 @@ public class UsuarioService {
     }
 
     // Metodo para atualizar um usuário existente
-    public UsuarioResponseDTO atualizar(Long id, UsuarioRequestDTO request) throws IllegalArgumentException {
+    public UsuarioDTO atualizar(Long id, UsuarioDTO dto) throws IllegalArgumentException {
         if (id == null) {
             throw new IllegalArgumentException("ID do usuário é obrigatório");
         }
@@ -95,21 +93,21 @@ public class UsuarioService {
         Usuario existente = buscarEntidadePorId(id);
 
         // Validar se email foi alterado (US3 - não permitido)
-        if (request.getEmail() != null && !request.getEmail().equals(existente.getEmail())) {
+        if (dto.getEmail() != null && !dto.getEmail().equals(existente.getEmail())) {
             throw new IllegalArgumentException("Não é permitido alterar o email");
         }
 
         // Atualizar campos (o mapper já valida o email)
-        Usuario usuarioAtualizado = UsuarioMapper.updateEntity(existente, request);
+        Usuario usuarioAtualizado = UsuarioMapper.updateEntity(existente, dto);
 
         // Salvar alterações
         usuarioRepository.atualizar(usuarioAtualizado);
 
         // Retornar DTO de resposta
-        return UsuarioMapper.toResponseDTO(usuarioAtualizado);
+        return UsuarioMapper.toDTO(usuarioAtualizado);
     }
 
-    public UsuarioResponseDTO ativarComSenha(Long id, String senha) throws IllegalArgumentException {
+    public UsuarioDTO ativarComSenha(Long id, String senha) throws IllegalArgumentException {
         Usuario usuario = buscarEntidadePorId(id);
 
         if (!usuario.getSenha().equals(senha)) {
@@ -123,10 +121,10 @@ public class UsuarioService {
         usuario.setAtivo(true);
         usuarioRepository.atualizar(usuario);
 
-        return UsuarioMapper.toResponseDTO(usuario);
+        return UsuarioMapper.toDTO(usuario);
     }
 
-    public UsuarioResponseDTO desativarComSenha(Long id, String senha) throws IllegalArgumentException {
+    public UsuarioDTO desativarComSenha(Long id, String senha) throws IllegalArgumentException {
         Usuario usuario = buscarEntidadePorId(id);
 
         // Validar senha (segurança)
@@ -141,7 +139,7 @@ public class UsuarioService {
         usuario.setAtivo(false);
         usuarioRepository.atualizar(usuario);
 
-        return UsuarioMapper.toResponseDTO(usuario);
+        return UsuarioMapper.toDTO(usuario);
     }
 
     public boolean emailExiste(String email) {

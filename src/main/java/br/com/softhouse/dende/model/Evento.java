@@ -29,7 +29,7 @@ public class Evento {
     private Integer ingressosVendidos;
 
     public Evento() {
-        this.ativo = false;             // Por padrão, o evento é criado como inativo
+        this.ativo = false;              // Por padrão, o evento é criado como inativo
         this.ingressosVendidos = 0;     // Inicializa a contagem de ingressos vendidos
         this.estornaCancelamento = true;// Por padrão, o evento permite estorno em caso de cancelamento
         this.taxaEstorno = 0.0;         // Por padrão, a taxa de estorno é 0%, ou seja, reembolsa o valor total pago
