@@ -17,12 +17,7 @@ public class OrganizadorRepository {
     // Instância única do repositório (padrão Singleton)
     private static OrganizadorRepository instance;
 
-    /**
-     * Mapas para buscar organizadores por ID, Email e CNPJ
-     * Map<Long, Organizador>: estrutura chave-valor onde a chave é Long (ID) e o valor é Organizador
-     * Map<String, Organizador>: estrutura chave-valor onde a chave é String (Email ou CNPJ) e o valor é Organizador
-     */
-
+    // Mapas para armazenar os organizadores, onde a chave é o ID, Email ou CNPJ do organizador e o valor é o objeto Organizador
     private final Map<Long, Organizador> organizadoresPorId;
     private final Map<String, Organizador> organizadoresPorEmail;
     private final Map<String, Organizador> organizadoresPorCnpj;

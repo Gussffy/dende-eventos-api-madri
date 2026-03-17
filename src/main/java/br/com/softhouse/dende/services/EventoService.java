@@ -16,16 +16,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- SERVICE DE EVENTOS
-
- Serviço responsável por toda a lógica de negócios relacionada a eventos, como cadastro, atualização, ativação, desativação e listagem.
- Ela atua como uma camada intermediária entre o Controller (camada de apresentação) e o
- Repositório (camada de dados).
-
- Princípios aplicados:
- - Single Responsibility: Cada metodo tem uma responsabilidade única
- - Validações: Todas as regras de negócio são validadas aqui
- - Tratamento de exceções: Lança exceções com mensagens claras para o controller
+ * SERVICE DE EVENTOS
+ *
+ * Serviço responsável por toda a lógica de negócios relacionada a eventos, como cadastro, atualização, ativação, desativação e listagem.
+ * Ela atua como uma camada intermediária entre o Controller (camada de apresentação) e o
+ * Repositório (camada de dados).
+ *
+ * Princípios aplicados:
+ * - Single Responsibility: Cada metodo tem uma responsabilidade única
+ * - Validações: Todas as regras de negócio são validadas aqui
+ * - Tratamento de exceções: Lança exceções com mensagens claras para o controller
  */
 public class EventoService {
 

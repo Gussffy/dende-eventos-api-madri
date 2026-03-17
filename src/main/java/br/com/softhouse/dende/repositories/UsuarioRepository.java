@@ -15,18 +15,14 @@ import java.util.Map;
  *
  * Funciona como se fosse uma "tabela" no banco de dados, com índices para busca
  * rápida por ID e por Email.
- *
  */
 
 public class UsuarioRepository {
 
     // Instância única do repositório (padrão Singleton)
     private static UsuarioRepository instance;
-/**
- * Mapa para buscar usuários por ID e por Email
- * Map<Long, Usuario>: estrutura chave-valor onde a chave é Long (ID) e o valor é Usuario
- * Map<String, Usuario>: estrutura chave-valor onde a chave é String (Email) e o valor é Usuario
-*/
+
+    // Mapas para armazenar os usuários, onde a chave é o ID ou Email do usuário e o valor é o objeto Usuario
     private final Map<Long, Usuario> usuariosPorId;
     private final Map<String, Usuario> usuariosPorEmail;
 
