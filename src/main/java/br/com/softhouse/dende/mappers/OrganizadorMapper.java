@@ -1,16 +1,15 @@
 package br.com.softhouse.dende.mappers;
 
-import br.com.softhouse.dende.dto.OrganizadorRequestDTO;
-import br.com.softhouse.dende.dto.OrganizadorResponseDTO;
+import br.com.softhouse.dende.dto.OrganizadorDTO;
 import br.com.softhouse.dende.model.Organizador;
 
-// Mapper para converter entre Organizador, OrganizadorRequestDTO e OrganizadorResponseDTO
+// Mapper para converter entre Organizador e OrganizadorDTO
 public class OrganizadorMapper {
 
     private OrganizadorMapper() {}
 
-    // Converte um OrganizadorRequestDTO para um objeto Organizador (entidade)
-    public static Organizador toEntity(OrganizadorRequestDTO dto) {
+    // Converte um OrganizadorDTO para um objeto Organizador (entidade)
+    public static Organizador toEntity(OrganizadorDTO dto) {
         if (dto == null) return null;
 
         // Criar um novo objeto Organizador e preencher seus campos com os dados do DTO
@@ -23,18 +22,33 @@ public class OrganizadorMapper {
         organizador.setCnpj(dto.getCnpj());
         organizador.setRazaoSocial(dto.getRazaoSocial());
         organizador.setNomeFantasia(dto.getNomeFantasia());
+        organizador.setAtivo(dto.getAtivo() != null ? dto.getAtivo() : true);
 
         return organizador;
     }
 
-    // Converte um objeto Organizador (entidade) para um OrganizadorResponseDTO
-    public static OrganizadorResponseDTO toResponseDTO(Organizador organizador) {
+    // Converte um objeto Organizador (entidade) para um OrganizadorDTO
+    public static OrganizadorDTO toDTO(Organizador organizador) {
         if (organizador == null) return null;
-        return new OrganizadorResponseDTO(organizador);
+
+        OrganizadorDTO dto = new OrganizadorDTO();
+        dto.setId(organizador.getId());
+        dto.setNome(organizador.getNome());
+        dto.setDataNascimento(organizador.getDataNascimento());
+        dto.setIdade(organizador.getIdade());
+        dto.setSexo(organizador.getSexo());
+        dto.setEmail(organizador.getEmail());
+        dto.setCnpj(organizador.getCnpj());
+        dto.setRazaoSocial(organizador.getRazaoSocial());
+        dto.setNomeFantasia(organizador.getNomeFantasia());
+        dto.setAtivo(organizador.getAtivo());
+        // Senha NÃO é copiada para o DTO (segurança)
+
+        return dto;
     }
 
-    // Atualiza os campos de um objeto Organizador com os dados de um OrganizadorRequestDTO (usado para update)
-    public static Organizador updateEntity(Organizador organizador, OrganizadorRequestDTO dto) {
+    // Atualiza os campos de um objeto Organizador com os dados de um OrganizadorDTO (usado para update)
+    public static Organizador updateEntity(Organizador organizador, OrganizadorDTO dto) {
 
         if (dto.getEmail() != null && !dto.getEmail().equals(organizador.getEmail())) {
             throw new IllegalArgumentException("Não é permitido alterar o email");
@@ -61,6 +75,9 @@ public class OrganizadorMapper {
         }
         if (dto.getNomeFantasia() != null) {
             organizador.setNomeFantasia(dto.getNomeFantasia());
+        }
+        if (dto.getAtivo() != null) {
+            organizador.setAtivo(dto.getAtivo());
         }
 
         return organizador;
