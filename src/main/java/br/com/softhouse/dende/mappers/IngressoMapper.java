@@ -32,7 +32,6 @@ public class IngressoMapper {
         dto.setValorPago(ingresso.getValorPago());
         dto.setStatus(ingresso.getStatus());
         dto.setIngressoPrincipal(ingresso.getIngressoPrincipal());
-        dto.setEventoVinculadoId(ingresso.getEventoVinculadoId());
 
         return dto;
     }
@@ -43,9 +42,8 @@ public class IngressoMapper {
     }
 
     // Cria um ingresso vinculado a outro evento, marcando-o como ingresso secundário
-    public static Ingresso createIngressoVinculado(Long usuarioId, Long eventoId, Long eventoVinculadoId, Double valorPago) {
+    public static Ingresso createIngressoVinculado(Long usuarioId, Long eventoId, Double valorPago) {
         Ingresso ingresso = new Ingresso(usuarioId, eventoId, valorPago);
-        ingresso.setEventoVinculadoId(eventoVinculadoId);
         ingresso.setIngressoPrincipal(false);
         return ingresso;
     }

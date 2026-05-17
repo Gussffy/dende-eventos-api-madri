@@ -1,6 +1,11 @@
 package br.com.softhouse.dende.repositories.util;
 
+import br.com.softhouse.dende.exceptions.ConfigurationException;
 import br.com.dende.softhouse.annotations.Value;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * CLASSE DE CONFIGURAÇÃO DE PROPRIEDADES
@@ -93,6 +98,29 @@ public class ConfigProperties {
 
     public void setDatasourceHikariConnectionTimeout(String datasourceHikariConnectionTimeout) {
         this.datasourceHikariConnectionTimeout = datasourceHikariConnectionTimeout;
+    }
+
+    public static ConfigProperties fromClasspath() {
+        Properties properties = new Properties();
+
+        try (InputStream inputStream = ConfigProperties.class.getClassLoader().getResourceAsStream("application.properties")) {
+            if (inputStream == null) {
+                throw new ConfigurationException("Arquivo application.properties não encontrado no classpath");
+            }
+            properties.load(inputStream);
+        } catch (IOException e) {
+            throw new ConfigurationException("Erro ao carregar application.properties", e);
+        }
+
+        ConfigProperties config = new ConfigProperties();
+        config.setDatasourceUrl(properties.getProperty("datasource.url"));
+        config.setDatasourceUsername(properties.getProperty("datasource.username"));
+        config.setDatasourcePassword(properties.getProperty("datasource.password"));
+        config.setDatasourceDriverClassName(properties.getProperty("datasource.driver-class-name"));
+        config.setDatasourceHikariMaximumPoolSize(properties.getProperty("datasource.hikari.maximum-pool-size"));
+        config.setDatasourceHikariMinimumIdle(properties.getProperty("datasource.hikari.minimum-idle"));
+        config.setDatasourceHikariConnectionTimeout(properties.getProperty("datasource.hikari.connection-timeout"));
+        return config;
     }
 }
 

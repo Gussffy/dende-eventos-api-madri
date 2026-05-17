@@ -1,5 +1,8 @@
 package br.com.softhouse.dende.services;
 
+import br.com.softhouse.dende.exceptions.ConflictException;
+import br.com.softhouse.dende.exceptions.NotFoundException;
+import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.dto.EmpresaDTO;
 import br.com.softhouse.dende.mappers.EmpresaMapper;
 import br.com.softhouse.dende.model.Empresa;
@@ -46,29 +49,29 @@ public class EmpresaService {
     public EmpresaDTO cadastrar(EmpresaDTO dto) {
         // Validações
         if (dto.getOrganizadorId() == null) {
-            throw new IllegalArgumentException("ID do organizador é obrigatório");
+            throw new ValidationException("ID do organizador é obrigatório");
         }
 
         if (dto.getCnpj() == null || dto.getCnpj().trim().isEmpty()) {
-            throw new IllegalArgumentException("CNPJ é obrigatório");
+            throw new ValidationException("CNPJ é obrigatório");
         }
 
         if (dto.getRazaoSocial() == null || dto.getRazaoSocial().trim().isEmpty()) {
-            throw new IllegalArgumentException("Razão social é obrigatória");
+            throw new ValidationException("Razão social é obrigatória");
         }
 
         if (dto.getNomeFantasia() == null || dto.getNomeFantasia().trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome fantasia é obrigatório");
+            throw new ValidationException("Nome fantasia é obrigatório");
         }
 
         // Validar unicidade do CNPJ
         if (empresaRepository.cnpjExiste(dto.getCnpj())) {
-            throw new IllegalArgumentException("CNPJ já cadastrado no sistema");
+            throw new ConflictException("CNPJ já cadastrado no sistema");
         }
 
         // Validar que o organizador não possui outra empresa
         if (empresaRepository.organizadorTemEmpresa(dto.getOrganizadorId())) {
-            throw new IllegalArgumentException("Este organizador já possui uma empresa vinculada");
+            throw new ConflictException("Este organizador já possui uma empresa vinculada");
         }
 
         // Converte DTO para entidade
@@ -90,12 +93,12 @@ public class EmpresaService {
      */
     public EmpresaDTO buscarPorId(Long id) {
         if (id == null || id <= 0) {
-            throw new IllegalArgumentException("ID inválido");
+            throw new ValidationException("ID inválido");
         }
 
         Empresa empresa = empresaRepository.buscarPorId(id);
         if (empresa == null) {
-            throw new IllegalArgumentException("Empresa não encontrada");
+            throw new NotFoundException("Empresa não encontrada");
         }
 
         return EmpresaMapper.toDTO(empresa);
@@ -110,7 +113,7 @@ public class EmpresaService {
      */
     public EmpresaDTO buscarPorOrganizadorId(Long organizadorId) {
         if (organizadorId == null || organizadorId <= 0) {
-            throw new IllegalArgumentException("ID do organizador inválido");
+            throw new ValidationException("ID do organizador inválido");
         }
 
         Empresa empresa = empresaRepository.buscarPorOrganizadorId(organizadorId);
@@ -130,12 +133,12 @@ public class EmpresaService {
      */
     public EmpresaDTO buscarPorCnpj(String cnpj) {
         if (cnpj == null || cnpj.trim().isEmpty()) {
-            throw new IllegalArgumentException("CNPJ é obrigatório");
+            throw new ValidationException("CNPJ é obrigatório");
         }
 
         Empresa empresa = empresaRepository.buscarPorCnpj(cnpj);
         if (empresa == null) {
-            throw new IllegalArgumentException("Empresa com CNPJ " + cnpj + " não encontrada");
+            throw new NotFoundException("Empresa com CNPJ " + cnpj + " não encontrada");
         }
 
         return EmpresaMapper.toDTO(empresa);
@@ -156,28 +159,28 @@ public class EmpresaService {
      */
     public EmpresaDTO atualizar(Long id, EmpresaDTO dto) {
         if (id == null || id <= 0) {
-            throw new IllegalArgumentException("ID inválido");
+            throw new ValidationException("ID inválido");
         }
 
         Empresa empresa = empresaRepository.buscarPorId(id);
         if (empresa == null) {
-            throw new IllegalArgumentException("Empresa não encontrada");
+            throw new NotFoundException("Empresa não encontrada");
         }
 
         // Validar CNPJ se estiver sendo alterado
         if (dto.getCnpj() != null && !dto.getCnpj().equals(empresa.getCnpj())) {
             if (empresaRepository.cnpjExiste(dto.getCnpj())) {
-                throw new IllegalArgumentException("CNPJ já cadastrado no sistema");
+                throw new ConflictException("CNPJ já cadastrado no sistema");
             }
         }
 
         // Validar campos obrigatórios
         if (dto.getRazaoSocial() != null && dto.getRazaoSocial().trim().isEmpty()) {
-            throw new IllegalArgumentException("Razão social não pode estar vazia");
+            throw new ValidationException("Razão social não pode estar vazia");
         }
 
         if (dto.getNomeFantasia() != null && dto.getNomeFantasia().trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome fantasia não pode estar vazio");
+            throw new ValidationException("Nome fantasia não pode estar vazio");
         }
 
         // Atualizar entidade
@@ -195,12 +198,12 @@ public class EmpresaService {
      */
     public void deletar(Long id) {
         if (id == null || id <= 0) {
-            throw new IllegalArgumentException("ID inválido");
+            throw new ValidationException("ID inválido");
         }
 
         Empresa empresa = empresaRepository.buscarPorId(id);
         if (empresa == null) {
-            throw new IllegalArgumentException("Empresa não encontrada");
+            throw new NotFoundException("Empresa não encontrada");
         }
 
         empresaRepository.deletar(id);

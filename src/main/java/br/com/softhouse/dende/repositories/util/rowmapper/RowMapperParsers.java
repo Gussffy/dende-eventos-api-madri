@@ -1,5 +1,7 @@
 package br.com.softhouse.dende.repositories.util.rowmapper;
 
+import br.com.softhouse.dende.exceptions.MappingException;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,22 +28,50 @@ final class RowMapperParsers {
 
     static Long toLong(String value) {
         String text = text(value);
-        return text == null ? null : Long.parseLong(text);
+        if (text == null) {
+            return null;
+        }
+        try {
+            return Long.parseLong(text);
+        } catch (NumberFormatException e) {
+            throw new MappingException("Valor numérico inválido para Long: " + value, e);
+        }
     }
 
     static Integer toInteger(String value) {
         String text = text(value);
-        return text == null ? null : Integer.parseInt(text);
+        if (text == null) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw new MappingException("Valor numérico inválido para Integer: " + value, e);
+        }
     }
 
     static Double toDouble(String value) {
         String text = text(value);
-        return text == null ? null : Double.parseDouble(text);
+        if (text == null) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(text);
+        } catch (NumberFormatException e) {
+            throw new MappingException("Valor numérico inválido para Double: " + value, e);
+        }
     }
 
     static BigDecimal toBigDecimal(String value) {
         String text = text(value);
-        return text == null ? null : new BigDecimal(text);
+        if (text == null) {
+            return null;
+        }
+        try {
+            return new BigDecimal(text);
+        } catch (NumberFormatException e) {
+            throw new MappingException("Valor numérico inválido para BigDecimal: " + value, e);
+        }
     }
 
     static Boolean toBoolean(String value) {
@@ -57,12 +87,19 @@ final class RowMapperParsers {
         if ("0".equals(normalized) || "false".equals(normalized)) {
             return false;
         }
-        throw new IllegalArgumentException("Valor booleano inválido: " + value);
+        throw new MappingException("Valor booleano inválido: " + value);
     }
 
     static LocalDate toLocalDate(String value) {
         String text = text(value);
-        return text == null ? null : LocalDate.parse(text);
+        if (text == null) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(text);
+        } catch (DateTimeParseException e) {
+            throw new MappingException("Data inválida: " + value, e);
+        }
     }
 
     static LocalDateTime toLocalDateTime(String value) {
@@ -79,7 +116,11 @@ final class RowMapperParsers {
             }
         }
 
-        return LocalDateTime.parse(text);
+        try {
+            return LocalDateTime.parse(text);
+        } catch (DateTimeParseException e) {
+            throw new MappingException("Data/hora inválida: " + value, e);
+        }
     }
 }
 

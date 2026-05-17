@@ -1,106 +1,229 @@
 package br.com.softhouse.dende.repositories;
 
+import br.com.softhouse.dende.exceptions.DatabaseException;
 import br.com.softhouse.dende.model.Evento;
+import br.com.softhouse.dende.repositories.util.ConnectionPool;
 import br.com.softhouse.dende.repositories.util.CrudRepository;
-import java.util.HashMap;
+import br.com.softhouse.dende.repositories.util.rowmapper.EventoRowMapper;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- REPOSITÓRIO DE EVENTOS
-
- Repositório para gerenciar os eventos, utilizando armazenamento em memória.
- Implementa o padrão Singleton para garantir que haja apenas uma instância do repositório.
-
+ * REPOSITÓRIO DE EVENTOS
+ *
+ * Persistência JDBC para a tabela evento.
  */
-
 public class EventoRepository implements CrudRepository<Evento, Long> {
 
-    // Instância única do repositório (padrão Singleton)
     private static EventoRepository instance;
 
-    // Mapa para armazenar os eventos, onde a chave é o ID do evento e o valor é o objeto Evento
-    private final Map<Long, Evento> eventos;
-    private long proximoId; // Variável para gerar IDs únicos para os eventos
+    private static final String SQL_INSERT = "INSERT INTO evento (organizador_id, evento_principal_id, nome, descricao, pagina_web, tipo_evento, modalidade, local_evento, data_inicio, data_fim, capacidade_maxima, preco_ingresso, estorna_ingresso, taxa_estorno, ativo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String SQL_SELECT_BY_ID = "SELECT id, organizador_id, evento_principal_id, nome, descricao, pagina_web, tipo_evento, modalidade, local_evento, data_inicio, data_fim, capacidade_maxima, preco_ingresso, estorna_ingresso, taxa_estorno, ativo, data_cadastro FROM evento WHERE id = ?";
+    private static final String SQL_SELECT_BY_ORGANIZADOR = "SELECT id, organizador_id, evento_principal_id, nome, descricao, pagina_web, tipo_evento, modalidade, local_evento, data_inicio, data_fim, capacidade_maxima, preco_ingresso, estorna_ingresso, taxa_estorno, ativo, data_cadastro FROM evento WHERE organizador_id = ? ORDER BY id";
+    private static final String SQL_SELECT_ALL = "SELECT id, organizador_id, evento_principal_id, nome, descricao, pagina_web, tipo_evento, modalidade, local_evento, data_inicio, data_fim, capacidade_maxima, preco_ingresso, estorna_ingresso, taxa_estorno, ativo, data_cadastro FROM evento ORDER BY id";
+    private static final String SQL_SELECT_ACTIVE = "SELECT id, organizador_id, evento_principal_id, nome, descricao, pagina_web, tipo_evento, modalidade, local_evento, data_inicio, data_fim, capacidade_maxima, preco_ingresso, estorna_ingresso, taxa_estorno, ativo, data_cadastro FROM evento WHERE ativo = 1 AND data_fim > NOW() ORDER BY data_inicio, nome";
+    private static final String SQL_UPDATE = "UPDATE evento SET organizador_id = ?, evento_principal_id = ?, nome = ?, descricao = ?, pagina_web = ?, tipo_evento = ?, modalidade = ?, local_evento = ?, data_inicio = ?, data_fim = ?, capacidade_maxima = ?, preco_ingresso = ?, estorna_ingresso = ?, taxa_estorno = ?, ativo = ? WHERE id = ?";
+    private static final String SQL_DELETE = "DELETE FROM evento WHERE id = ?";
+    private static final String SQL_COUNT_VALID_TICKETS = "SELECT COUNT(*) FROM ingresso WHERE evento_id = ? AND status NOT IN ('CANCELADO', 'REEMBOLSADO')";
+    private static final String SQL_EXISTS_ACTIVE_OR_RUNNING = "SELECT 1 FROM evento WHERE organizador_id = ? AND (ativo = 1 OR (data_inicio <= NOW() AND data_fim > NOW())) LIMIT 1";
+
+    private final ConnectionPool connectionPool;
+    private final EventoRowMapper rowMapper;
 
     private EventoRepository() {
-        this.eventos = new HashMap<>();    // Inicializa o mapa de eventos como um HashMap vazio
-        this.proximoId = 1;                // Define que o primeiro ID a ser usado será 1
+        this.connectionPool = ConnectionPool.getInstance();
+        this.rowMapper = new EventoRowMapper();
     }
 
-    // Metodo para obter a instância única do repositório
     public static synchronized EventoRepository getInstance() {
-        if (instance == null) {                 // Verifica se a instância ainda não foi criada
-            instance = new EventoRepository();  // Se não, cria uma nova instância do repositório
+        if (instance == null) {
+            instance = new EventoRepository();
         }
-        return instance;                        // Retorna a instância única do repositório
+        return instance;
     }
 
-    /** CRUD DE EVENTOS - Create, Read, Update, Delete */
-
-    // Metodo para salvar um evento (criar ou atualizar)
     @Override
     public Evento salvar(Evento evento) {
-
-        if (evento.getId() == null) {   // Verifica se o evento ainda não tem um ID (novo evento)
-            evento.setId(proximoId++);  // Atribui um ID único ao evento e incrementa o contador para o próximo ID
+        if (evento == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Evento é obrigatório");
         }
-        eventos.put(evento.getId(), evento); // Armazena o evento no mapa, usando o ID como chave
+        if (evento.getId() == null) {
+            inserir(evento);
+        } else {
+            atualizar(evento);
+        }
         return evento;
     }
 
-    // Metodo para buscar um evento por ID
     @Override
     public Evento buscarPorId(Long id) {
-        return eventos.get(id);
-    }
-
-    // Metodo para buscar eventos por ID do organizador
-    public List<Evento> buscarPorOrganizadorId(Long organizadorId) {
-
-        // Filtra os eventos no mapa para retornar apenas aqueles cujo ID do organizador corresponde ao ID fornecido
-        return eventos.values().stream()
-                .filter(e -> e.getOrganizadorId().equals(organizadorId))
-                .collect(Collectors.toList());
-    }
-
-    // Metodo para atualizar um evento existente
-    @Override
-    public void atualizar(Evento evento) {
-
-        // Verifica se o evento tem um ID válido (não nulo) antes de atualizar
-        if (evento.getId() != null) {
-
-            // Atualiza o evento no mapa, usando o ID como chave
-            eventos.put(evento.getId(), evento);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
+            statement.setLong(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return null;
+                }
+                return carregarIngressosVendidos(mapEvento(resultSet));
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar evento por id", e);
         }
     }
 
-    // Metodo para listar todos os eventos
+    public List<Evento> buscarPorOrganizadorId(Long organizadorId) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ORGANIZADOR)) {
+            statement.setLong(1, organizadorId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<Evento> eventos = new ArrayList<>();
+                while (resultSet.next()) {
+                    eventos.add(carregarIngressosVendidos(mapEvento(resultSet)));
+                }
+                return eventos;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar eventos por organizador", e);
+        }
+    }
+
+    @Override
+    public void atualizar(Evento evento) {
+        if (evento == null || evento.getId() == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Evento com ID é obrigatório para atualização");
+        }
+
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
+            preencherStatement(statement, evento);
+            statement.setLong(16, evento.getId());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar evento", e);
+        }
+    }
+
     @Override
     public List<Evento> listarTodos() {
-        return List.copyOf(eventos.values());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL);
+             ResultSet resultSet = statement.executeQuery()) {
+            List<Evento> eventos = new ArrayList<>();
+            while (resultSet.next()) {
+                eventos.add(carregarIngressosVendidos(mapEvento(resultSet)));
+            }
+            return eventos;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao listar eventos", e);
+        }
+    }
+
+    public List<Evento> listarAtivos() {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ACTIVE);
+             ResultSet resultSet = statement.executeQuery()) {
+            List<Evento> eventos = new ArrayList<>();
+            while (resultSet.next()) {
+                Evento evento = carregarIngressosVendidos(mapEvento(resultSet));
+                if (evento.temIngressosDisponiveis()) {
+                    eventos.add(evento);
+                }
+            }
+            return eventos;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao listar eventos ativos", e);
+        }
     }
 
     @Override
     public void deletar(Long id) {
-        eventos.remove(id);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao deletar evento", e);
+        }
     }
 
-    // Metodo para listar apenas os eventos ativos, que ainda não aconteceram e que têm ingressos disponíveis
-    public List<Evento> listarAtivos() {
-        return eventos.values().stream()
-                .filter(Evento::getAtivo)
-                .filter(e -> !e.eventoJaAconteceu())
-                .filter(Evento::temIngressosDisponiveis)
-                .collect(Collectors.toList());
-    }
-
-    // Metodo para verificar se um organizador tem eventos ativos ou em andamento, usado para validação de exclusão de organizador
     public boolean organizadorTemEventosAtivosOuEmExecucao(Long organizadorId) {
-        return eventos.values().stream()            // Percorre os eventos no mapa
-                .anyMatch(e -> e.getOrganizadorId().equals(organizadorId) && // Verifica se o evento pertence ao organizador e se está ativo ou em andamento
-                        (e.getAtivo() || e.eventoEmAndamento())); // Retorna true se encontrar algum evento que atenda a essas condições, caso contrário retorna false
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_EXISTS_ACTIVE_OR_RUNNING)) {
+            statement.setLong(1, organizadorId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao verificar eventos ativos do organizador", e);
+        }
+    }
+
+    private void inserir(Evento evento) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+            preencherStatement(statement, evento);
+            statement.executeUpdate();
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    evento.setId(generatedKeys.getLong(1));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao salvar evento", e);
+        }
+    }
+
+    private void preencherStatement(PreparedStatement statement, Evento evento) throws SQLException {
+        statement.setObject(1, evento.getOrganizadorId());
+        statement.setObject(2, evento.getEventoPrincipalId());
+        statement.setString(3, evento.getNome());
+        statement.setString(4, evento.getDescricao());
+        statement.setString(5, evento.getPagina());
+        statement.setString(6, evento.getTipoEvento() != null ? evento.getTipoEvento().name() : null);
+        statement.setString(7, evento.getModalidade() != null ? evento.getModalidade().name() : null);
+        statement.setString(8, evento.getLocal());
+        statement.setObject(9, evento.getDataInicio());
+        statement.setObject(10, evento.getDataFinal());
+        statement.setObject(11, evento.getCapacidadeMaxima());
+        statement.setObject(12, evento.getPrecoIngresso());
+        statement.setBoolean(13, Boolean.TRUE.equals(evento.getEstornaCancelamento()));
+        statement.setObject(14, evento.getTaxaEstorno());
+        statement.setBoolean(15, Boolean.TRUE.equals(evento.getAtivo()));
+    }
+
+    private Evento mapEvento(ResultSet resultSet) throws SQLException {
+        String[] row = new String[]{
+                String.valueOf(resultSet.getLong("id")),
+                String.valueOf(resultSet.getLong("organizador_id")),
+                resultSet.getObject("evento_principal_id") != null ? String.valueOf(resultSet.getLong("evento_principal_id")) : null,
+                resultSet.getString("nome"),
+                resultSet.getString("descricao"),
+                resultSet.getString("pagina_web"),
+                resultSet.getString("tipo_evento"),
+                resultSet.getString("modalidade"),
+                resultSet.getString("local_evento"),
+                resultSet.getTimestamp("data_inicio").toLocalDateTime().toString(),
+                resultSet.getTimestamp("data_fim").toLocalDateTime().toString(),
+                String.valueOf(resultSet.getInt("capacidade_maxima")),
+                String.valueOf(resultSet.getDouble("preco_ingresso")),
+                String.valueOf(resultSet.getBoolean("estorna_ingresso")),
+                String.valueOf(resultSet.getDouble("taxa_estorno")),
+                String.valueOf(resultSet.getBoolean("ativo")),
+                resultSet.getTimestamp("data_cadastro") != null ? resultSet.getTimestamp("data_cadastro").toLocalDateTime().toString() : null
+        };
+        return rowMapper.mapRow(row);
+    }
+
+    private Evento carregarIngressosVendidos(Evento evento) {
+        if (evento != null) {
+            evento.setIngressosVendidos(IngressoRepository.getInstance().contarIngressosValidosPorEvento(evento.getId()));
+        }
+        return evento;
     }
 }

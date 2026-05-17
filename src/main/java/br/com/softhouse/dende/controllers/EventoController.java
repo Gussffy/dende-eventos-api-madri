@@ -3,6 +3,8 @@ package br.com.softhouse.dende.controllers;
 import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
+import br.com.softhouse.dende.exceptions.ApiExceptionMapper;
+import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.dto.ApiResponse;
 import br.com.softhouse.dende.dto.EventoDTO;
 import br.com.softhouse.dende.dto.EventoResumoDTO;
@@ -30,18 +32,14 @@ public class EventoController {
     public ResponseEntity<ApiResponse<EventoDTO>> cadastrar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @RequestBody EventoDTO dto) {
-        // Tenta cadastrar o evento usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             EventoDTO response = eventoService.cadastrar(organizadorId, dto);
             ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     response, "Evento cadastrado com sucesso", 201
             );
             return ResponseEntity.status(201, apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
@@ -51,18 +49,14 @@ public class EventoController {
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @RequestBody EventoDTO dto) {
-        // Tenta atualizar o evento usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             EventoDTO response = eventoService.atualizar(organizadorId, eventoId, dto);
             ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
                     response, "Evento atualizado com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
@@ -72,7 +66,6 @@ public class EventoController {
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @PathVariable(parameter = "status") boolean ativar) {
-        // Tenta ativar ou desativar o evento usando o serviço, e retorna uma resposta formatada com ApiResponse indicando o resultado da operação
         try {
             EventoDTO response;
             String operacao;
@@ -89,11 +82,8 @@ public class EventoController {
                     response, "Evento " + operacao + " com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
@@ -101,7 +91,6 @@ public class EventoController {
     @GetMapping(path = "/organizadores/{organizadorId}/eventos")
     public ResponseEntity<ApiResponse<List<EventoResumoDTO>>> listarDoOrganizador(
             @PathVariable(parameter = "organizadorId") Long organizadorId) {
-        // Tenta listar os eventos do organizador usando o serviço, e retorna uma resposta formatada com ApiResponse contendo a lista de resumos dos eventos ou uma mensagem de erro em caso de falha
         try {
             List<EventoResumoDTO> resumos = eventoService.listarPorOrganizador(organizadorId);
             ApiResponse<List<EventoResumoDTO>> apiResponse = new ApiResponse<>(
@@ -109,17 +98,13 @@ public class EventoController {
             );
             return ResponseEntity.ok(apiResponse);
         } catch (Exception e) {
-            ApiResponse<List<EventoResumoDTO>> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
     // Mapeia a rota GET /eventos para o metodo feed, que retorna uma lista de eventos ativos disponíveis para os usuários
     @GetMapping(path = "/eventos")
     public ResponseEntity<ApiResponse<List<EventoDTO>>> feed() {
-        // Tenta obter o feed de eventos ativos usando o serviço, e retorna uma resposta formatada com ApiResponse contendo a lista de eventos ou uma mensagem de erro em caso de falha
         try {
             List<EventoDTO> response = eventoService.feedAtivos();
             ApiResponse<List<EventoDTO>> apiResponse = new ApiResponse<>(
@@ -127,10 +112,7 @@ public class EventoController {
             );
             return ResponseEntity.ok(apiResponse);
         } catch (Exception e) {
-            ApiResponse<List<EventoDTO>> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package br.com.softhouse.dende.mappers;
 
+import br.com.softhouse.dende.exceptions.ConflictException;
 import br.com.softhouse.dende.dto.UsuarioDTO;
 import br.com.softhouse.dende.model.Usuario;
 
@@ -50,7 +51,7 @@ public class UsuarioMapper {
     public static Usuario updateEntity(Usuario usuario, UsuarioDTO dto) {
 
         if (dto.getEmail() != null && !dto.getEmail().equals(usuario.getEmail())) {
-            throw new IllegalArgumentException("Não é permitido alterar o email");
+            throw new ConflictException("Não é permitido alterar o email");
         }
         if (dto.getNome() != null) {
             usuario.setNome(dto.getNome());

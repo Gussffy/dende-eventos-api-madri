@@ -12,10 +12,11 @@ public class Ingresso {
     private Long id;
     private Long usuarioId;
     private Long eventoId;
-    private Long eventoVinculadoId;
     private String codigo;
     private LocalDateTime dataCompra;
     private Double valorPago;
+    private Double valorEstornado;
+    private LocalDateTime dataCancelamento;
     private StatusIngresso status;
     private Boolean ingressoPrincipal;
 
@@ -24,6 +25,7 @@ public class Ingresso {
         this.status = StatusIngresso.PENDENTE;  // Define o status inicial do ingresso como PENDENTE
         this.ingressoPrincipal = true;          // Por padrão, o ingresso é considerado principal
         this.codigo = gerarCodigo();            // Gera um código único para o ingresso usando UUID
+        this.valorEstornado = 0.0;
     }
 
     public Ingresso(Long usuarioId, Long eventoId, Double valorPago) {
@@ -43,9 +45,6 @@ public class Ingresso {
     public Long getEventoId() { return eventoId; }
     public void setEventoId(Long eventoId) { this.eventoId = eventoId; }
 
-    public Long getEventoVinculadoId() { return eventoVinculadoId; }
-    public void setEventoVinculadoId(Long eventoVinculadoId) { this.eventoVinculadoId = eventoVinculadoId; }
-
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }
 
@@ -54,6 +53,12 @@ public class Ingresso {
 
     public Double getValorPago() { return valorPago; }
     public void setValorPago(Double valorPago) { this.valorPago = valorPago; }
+
+    public Double getValorEstornado() { return valorEstornado; }
+    public void setValorEstornado(Double valorEstornado) { this.valorEstornado = valorEstornado; }
+
+    public LocalDateTime getDataCancelamento() { return dataCancelamento; }
+    public void setDataCancelamento(LocalDateTime dataCancelamento) { this.dataCancelamento = dataCancelamento; }
 
     public StatusIngresso getStatus() { return status; }
     public void setStatus(StatusIngresso status) { this.status = status; }
@@ -89,6 +94,8 @@ public class Ingresso {
     public void reembolsar() {
         if (status == StatusIngresso.ATIVO || status == StatusIngresso.CANCELADO) {
             this.status = StatusIngresso.REEMBOLSADO;
+            this.valorEstornado = this.valorPago;
+            this.dataCancelamento = LocalDateTime.now();
         }
     }
 

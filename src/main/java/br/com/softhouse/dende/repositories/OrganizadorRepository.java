@@ -1,42 +1,45 @@
 package br.com.softhouse.dende.repositories;
 
+import br.com.softhouse.dende.exceptions.DatabaseException;
+import br.com.softhouse.dende.model.Empresa;
 import br.com.softhouse.dende.model.Organizador;
+import br.com.softhouse.dende.repositories.util.ConnectionPool;
 import br.com.softhouse.dende.repositories.util.CrudRepository;
+import br.com.softhouse.dende.repositories.util.rowmapper.OrganizadorRowMapper;
 
-import java.util.HashMap;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * REPOSITÓRIO DE ORGANIZADORES
  *
- * Repositório para gerenciar os organizadores, utilizando armazenamento em memória.
- * Implementa o padrão Singleton para garantir que haja apenas uma instância do repositório.
- *
- * Nota: Dados de empresa agora são gerenciados por EmpresaRepository (separação de responsabilidades).
+ * Persistência JDBC para a tabela usuario, filtrando tipo_usuario = ORGANIZADOR.
  */
-
 public class OrganizadorRepository implements CrudRepository<Organizador, Long> {
 
-    // Instância única do repositório (padrão Singleton)
     private static OrganizadorRepository instance;
 
-    // Mapas para armazenar os organizadores, onde a chave é o ID ou Email do organizador
-    private final Map<Long, Organizador> organizadoresPorId;
-    private final Map<String, Organizador> organizadoresPorEmail;
+    private static final String SQL_INSERT = "INSERT INTO usuario (nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    private static final String SQL_SELECT_BY_ID = "SELECT id, nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo FROM usuario WHERE id = ? AND tipo_usuario = 'ORGANIZADOR'";
+    private static final String SQL_SELECT_BY_EMAIL = "SELECT id, nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo FROM usuario WHERE email = ? AND tipo_usuario = 'ORGANIZADOR'";
+    private static final String SQL_SELECT_ALL = "SELECT id, nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo FROM usuario WHERE tipo_usuario = 'ORGANIZADOR' ORDER BY id";
+    private static final String SQL_UPDATE = "UPDATE usuario SET nome = ?, data_nascimento = ?, sexo = ?, email = ?, senha = ?, tipo_usuario = ?, ativo = ? WHERE id = ? AND tipo_usuario = 'ORGANIZADOR'";
+    private static final String SQL_DELETE = "DELETE FROM usuario WHERE id = ? AND tipo_usuario = 'ORGANIZADOR'";
+    private static final String SQL_EXISTS_EMAIL = "SELECT 1 FROM usuario WHERE email = ? LIMIT 1";
 
-    // Variável para gerar IDs únicos para os organizadores
-    private long proximoId;
+    private final ConnectionPool connectionPool;
+    private final OrganizadorRowMapper rowMapper;
 
-    // Construtor privado para impedir a criação de múltiplas instâncias
     private OrganizadorRepository() {
-        this.organizadoresPorId = new HashMap<>();      // Inicializa o mapa de IDs como um HashMap vazio
-        this.organizadoresPorEmail = new HashMap<>();   // Inicializa o mapa de Emails como um HashMap vazio
-
-        this.proximoId = 1;     // Define que o primeiro ID a ser usado será 1
+        this.connectionPool = ConnectionPool.getInstance();
+        this.rowMapper = new OrganizadorRowMapper();
     }
 
-    // Metodo para obter a instância única do repositório
     public static synchronized OrganizadorRepository getInstance() {
         if (instance == null) {
             instance = new OrganizadorRepository();
@@ -44,77 +47,165 @@ public class OrganizadorRepository implements CrudRepository<Organizador, Long> 
         return instance;
     }
 
-    /** CRUD DE ORGANIZADORES - Create, Read, Update, Delete */
-
-    // Metodo para salvar um organizador (criar ou atualizar)
     @Override
     public Organizador salvar(Organizador organizador) {
-
-        if (organizador.getId() == null) {      //Verifica se o organizador ainda não tem um ID (novo organizador)
-            organizador.setId(proximoId++);     //Atribui um ID único ao organizador e incrementa o contador de IDs
+        if (organizador == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Organizador é obrigatório");
         }
-
-        organizadoresPorId.put(organizador.getId(), organizador);   //Armazena o organizador no mapa de IDs, usando o ID como chave
-        organizadoresPorEmail.put(organizador.getEmail(), organizador); //Armazena o organizador no mapa de Emails, usando o Email como chave
-
-
-        // Retorna o organizador salvo (com ID atribuído)
+        if (organizador.getId() == null) {
+            inserir(organizador);
+        } else {
+            atualizar(organizador);
+        }
         return organizador;
     }
 
-    // Metodo para buscar um organizador por ID
     @Override
     public Organizador buscarPorId(Long id) {
-        return organizadoresPorId.get(id);
-    }
-
-    // Metodo para buscar um organizador por email
-    public Organizador buscarPorEmail(String email) {
-        return organizadoresPorEmail.get(email);
-    }
-
-
-    // Metodo para atualizar um organizador existente
-    @Override
-    public void atualizar(Organizador organizador) {
-
-        // Verifica se o organizador tem um ID (deve ter para ser atualizado)
-        if (organizador.getId() != null) {
-            Organizador existente = organizadoresPorId.get(organizador.getId()); // Busca o organizador existente pelo ID
-
-            // Verifica se o organizador existe e se o email foi alterado
-            if (existente != null) {
-                if (!existente.getEmail().equals(organizador.getEmail())) {
-
-                    // Remove o organizador antigo do mapa de Emails (usando o email antigo como chave)
-                    organizadoresPorEmail.remove(existente.getEmail());
-
-                    // Atualiza o mapa de Emails com a nova entrada de email
-                    organizadoresPorEmail.put(organizador.getEmail(), organizador);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
+            statement.setLong(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return carregarEmpresa(mapOrganizador(resultSet));
                 }
-
-
-                // Atualiza o mapa de IDs com a nova entrada do organizador
-                organizadoresPorId.put(organizador.getId(), organizador);
+                return null;
             }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar organizador por id", e);
         }
     }
 
-    // Metodo para verificar se um email já existe no repositório
+    public Organizador buscarPorEmail(String email) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_EMAIL)) {
+            statement.setString(1, email);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return carregarEmpresa(mapOrganizador(resultSet));
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar organizador por email", e);
+        }
+    }
+
+    @Override
+    public void atualizar(Organizador organizador) {
+        if (organizador == null || organizador.getId() == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Organizador com ID é obrigatório para atualização");
+        }
+
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
+            preencherStatement(statement, organizador);
+            statement.setLong(8, organizador.getId());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar organizador", e);
+        }
+    }
+
     public boolean emailExiste(String email) {
-        return organizadoresPorEmail.containsKey(email);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_EXISTS_EMAIL)) {
+            statement.setString(1, email);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao verificar email do organizador", e);
+        }
     }
 
     @Override
     public void deletar(Long id) {
-        Organizador organizador = organizadoresPorId.remove(id);
-        if (organizador != null) {
-            organizadoresPorEmail.remove(organizador.getEmail());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao deletar organizador", e);
         }
     }
 
     @Override
     public List<Organizador> listarTodos() {
-        return List.copyOf(organizadoresPorId.values());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL);
+             ResultSet resultSet = statement.executeQuery()) {
+            List<Organizador> organizadores = new ArrayList<>();
+            while (resultSet.next()) {
+                organizadores.add(carregarEmpresa(mapOrganizador(resultSet)));
+            }
+            return organizadores;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao listar organizadores", e);
+        }
+    }
+
+    private void inserir(Organizador organizador) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+            preencherStatement(statement, organizador);
+            statement.executeUpdate();
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    organizador.setId(generatedKeys.getLong(1));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao salvar organizador", e);
+        }
+    }
+
+    private void preencherStatement(PreparedStatement statement, Organizador organizador) throws SQLException {
+        statement.setString(1, organizador.getNome());
+        statement.setObject(2, organizador.getDataNascimento());
+        statement.setString(3, sexoParaBanco(organizador.getSexo()));
+        statement.setString(4, organizador.getEmail());
+        statement.setString(5, organizador.getSenha());
+        statement.setString(6, "ORGANIZADOR");
+        statement.setBoolean(7, Boolean.TRUE.equals(organizador.getAtivo()));
+    }
+
+    private Organizador mapOrganizador(ResultSet resultSet) throws SQLException {
+        String[] row = new String[]{
+                String.valueOf(resultSet.getLong("id")),
+                resultSet.getString("nome"),
+                resultSet.getDate("data_nascimento").toLocalDate().toString(),
+                resultSet.getString("sexo"),
+                resultSet.getString("email"),
+                resultSet.getString("senha"),
+                resultSet.getString("tipo_usuario"),
+                String.valueOf(resultSet.getBoolean("ativo"))
+        };
+        return rowMapper.mapRow(row);
+    }
+
+    private Organizador carregarEmpresa(Organizador organizador) {
+        if (organizador == null) {
+            return null;
+        }
+        Empresa empresa = EmpresaRepository.getInstance().buscarPorOrganizadorId(organizador.getId());
+        organizador.setEmpresa(empresa);
+        return organizador;
+    }
+
+    private String sexoParaBanco(br.com.softhouse.dende.model.enums.Sexo sexo) {
+        if (sexo == null) {
+            return null;
+        }
+        switch (sexo) {
+            case MASCULINO:
+                return "M";
+            case FEMININO:
+                return "F";
+            case OUTRO:
+                return "O";
+            default:
+                return sexo.name();
+        }
     }
 }

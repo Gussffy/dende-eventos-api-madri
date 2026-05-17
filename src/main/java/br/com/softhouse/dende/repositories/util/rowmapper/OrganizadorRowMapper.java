@@ -1,5 +1,6 @@
 package br.com.softhouse.dende.repositories.util.rowmapper;
 
+import br.com.softhouse.dende.exceptions.MappingException;
 import br.com.softhouse.dende.model.Organizador;
 import br.com.softhouse.dende.model.enums.Sexo;
 import br.com.softhouse.dende.repositories.util.RowMapper;
@@ -27,21 +28,25 @@ public class OrganizadorRowMapper implements RowMapper<Organizador> {
             return null;
         }
 
-        switch (normalized.toUpperCase()) {
-            case "M":
-                return Sexo.MASCULINO;
-            case "F":
-                return Sexo.FEMININO;
-            case "O":
-                return Sexo.OUTRO;
-            default:
-                return Sexo.valueOf(normalized.toUpperCase());
+        try {
+            switch (normalized.toUpperCase()) {
+                case "M":
+                    return Sexo.MASCULINO;
+                case "F":
+                    return Sexo.FEMININO;
+                case "O":
+                    return Sexo.OUTRO;
+                default:
+                    return Sexo.valueOf(normalized.toUpperCase());
+            }
+        } catch (IllegalArgumentException e) {
+            throw new MappingException("Sexo inválido: " + value, e);
         }
     }
 
     private void validateRow(String[] row, int expectedMinSize) {
         if (row == null || row.length < expectedMinSize) {
-            throw new IllegalArgumentException("Linha inválida para mapear Organizador. Esperado ao menos " + expectedMinSize + " colunas.");
+            throw new MappingException("Linha inválida para mapear Organizador. Esperado ao menos " + expectedMinSize + " colunas.");
         }
     }
 }

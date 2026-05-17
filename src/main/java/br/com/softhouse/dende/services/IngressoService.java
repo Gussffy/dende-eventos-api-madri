@@ -1,12 +1,16 @@
 package br.com.softhouse.dende.services;
 
 import br.com.softhouse.dende.dto.*;
+import br.com.softhouse.dende.exceptions.ConflictException;
+import br.com.softhouse.dende.exceptions.NotFoundException;
+import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.mappers.IngressoMapper;
 import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.Ingresso;
 import br.com.softhouse.dende.model.Usuario;
 import br.com.softhouse.dende.model.enums.StatusIngresso;
 import br.com.softhouse.dende.repositories.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,36 +39,36 @@ public class IngressoService {
         this.usuarioRepository = UsuarioRepository.getInstance();
     }
 
-    public CompraResponseDTO comprar(Long organizadorId, Long eventoId, CompraRequestDTO request) throws IllegalArgumentException {
+    public CompraResponseDTO comprar(Long organizadorId, Long eventoId, CompraRequestDTO request) {
 
         // Validar usuário
         Usuario usuario = usuarioRepository.buscarPorEmail(request.getUsuarioEmail());
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não encontrado");
+            throw new NotFoundException("Usuário não encontrado");
         }
         if (!usuario.getAtivo()) {
-            throw new IllegalArgumentException("Usuário inativo não pode comprar ingressos");
+            throw new ConflictException("Usuário inativo não pode comprar ingressos");
         }
 
         // Validar evento
         Evento evento = eventoRepository.buscarPorId(eventoId);
         if (evento == null) {
-            throw new IllegalArgumentException("Evento não encontrado");
+            throw new NotFoundException("Evento não encontrado");
         }
         if (!evento.getOrganizadorId().equals(organizadorId)) {
-            throw new IllegalArgumentException("Evento não pertence a este organizador");
+            throw new ConflictException("Evento não pertence a este organizador");
         }
         if (!evento.getAtivo()) {
-            throw new IllegalArgumentException("Evento inativo não está vendendo ingressos");
+            throw new ConflictException("Evento inativo não está vendendo ingressos");
         }
         if (evento.eventoJaAconteceu()) {
-            throw new IllegalArgumentException("Evento já aconteceu");
+            throw new ConflictException("Evento já aconteceu");
         }
         if (!evento.temIngressosDisponiveis()) {
-            throw new IllegalArgumentException("Ingressos esgotados");
+            throw new ConflictException("Ingressos esgotados");
         }
         if (ingressoRepository.existeIngressoAtivo(usuario.getId(), eventoId)) {
-            throw new IllegalArgumentException("Você já possui um ingresso ativo para este evento");
+            throw new ConflictException("Você já possui um ingresso ativo para este evento");
         }
 
         // Calcular valor esperado
@@ -76,7 +80,7 @@ public class IngressoService {
             principal = eventoRepository.buscarPorId(evento.getEventoPrincipalId());
             if (principal != null && principal.getAtivo()) {
                 if (!principal.temIngressosDisponiveis()) {
-                    throw new IllegalArgumentException("Evento principal não tem ingressos disponíveis");
+                    throw new ConflictException("Evento principal não tem ingressos disponíveis");
                 }
                 valorEsperado += principal.getPrecoIngresso();
             }
@@ -84,7 +88,7 @@ public class IngressoService {
 
         // Validar valor pago
         if (request.getTotalPago() != null && Math.abs(request.getTotalPago() - valorEsperado) > 0.01) {
-            throw new IllegalArgumentException(
+            throw new ValidationException(
                     String.format("Valor pago (R$ %.2f) não corresponde ao preço do ingresso (R$ %.2f)",
                             request.getTotalPago(), valorEsperado)
             );
@@ -103,7 +107,7 @@ public class IngressoService {
         // Se for evento vinculado, criar ingresso para evento principal
         if (principal != null && principal.getAtivo() && principal.temIngressosDisponiveis()) {
             Ingresso ingressoVinculado = IngressoMapper.createIngressoVinculado(
-                    usuario.getId(), principal.getId(), eventoId, principal.getPrecoIngresso());
+                    usuario.getId(), principal.getId(), principal.getPrecoIngresso());
             ingressoRepository.salvar(ingressoVinculado);
             principal.venderIngresso();
             eventoRepository.atualizar(principal);
@@ -119,38 +123,40 @@ public class IngressoService {
         return new CompraResponseDTO(mensagem, codigos, valorTotal, "AGUARDANDO_PAGAMENTO");
     }
 
-    public CancelamentoResponseDTO cancelar(Long usuarioId, Long ingressoId) throws IllegalArgumentException {
+    public CancelamentoResponseDTO cancelar(Long usuarioId, Long ingressoId) {
 
         Usuario usuario = usuarioRepository.buscarPorId(usuarioId);
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não encontrado");
+            throw new NotFoundException("Usuário não encontrado");
         }
 
         Ingresso ingresso = ingressoRepository.buscarPorId(ingressoId);
         if (ingresso == null) {
-            throw new IllegalArgumentException("Ingresso não encontrado");
+            throw new NotFoundException("Ingresso não encontrado");
         }
 
         if (!ingresso.getUsuarioId().equals(usuarioId)) {
-            throw new IllegalArgumentException("Ingresso não pertence a este usuário");
+            throw new ConflictException("Ingresso não pertence a este usuário");
         }
 
         if (!ingresso.podeSerCancelado()) {
-            throw new IllegalArgumentException("Este ingresso não pode ser cancelado");
+            throw new ConflictException("Este ingresso não pode ser cancelado");
         }
 
         Evento evento = eventoRepository.buscarPorId(ingresso.getEventoId());
         if (evento == null) {
-            throw new IllegalArgumentException("Evento associado ao ingresso não encontrado");
+            throw new NotFoundException("Evento associado ao ingresso não encontrado");
         }
 
         if (evento.eventoJaAconteceu()) {
-            throw new IllegalArgumentException("Não é possível cancelar ingresso de evento já realizado");
+            throw new ConflictException("Não é possível cancelar ingresso de evento já realizado");
         }
 
         double valorReembolso = evento.calcularReembolso(ingresso.getValorPago());
 
         ingresso.cancelar();
+        ingresso.setValorEstornado(valorReembolso);
+        ingresso.setDataCancelamento(LocalDateTime.now());
         ingressoRepository.atualizar(ingresso);
 
         evento.cancelarIngresso();
@@ -181,21 +187,21 @@ public class IngressoService {
         );
     }
 
-    public double calcularReembolso(Long ingressoId) throws IllegalArgumentException {
+    public double calcularReembolso(Long ingressoId) {
         Ingresso ingresso = ingressoRepository.buscarPorId(ingressoId);
         if (ingresso == null) {
-            throw new IllegalArgumentException("Ingresso não encontrado");
+            throw new NotFoundException("Ingresso não encontrado");
         }
 
         Evento evento = eventoRepository.buscarPorId(ingresso.getEventoId());
         return evento.calcularReembolso(ingresso.getValorPago());
     }
 
-    public List<IngressoDTO> listarPorUsuario(Long usuarioId) throws IllegalArgumentException {
+    public List<IngressoDTO> listarPorUsuario(Long usuarioId) {
 
         Usuario usuario = usuarioRepository.buscarPorId(usuarioId);
         if (usuario == null) {
-            throw new IllegalArgumentException("Usuário não encontrado");
+            throw new NotFoundException("Usuário não encontrado");
         }
 
         List<Ingresso> ingressos = ingressoRepository.buscarPorUsuarioId(usuarioId);

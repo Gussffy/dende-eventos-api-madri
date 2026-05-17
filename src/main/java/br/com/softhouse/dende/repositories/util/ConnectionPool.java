@@ -1,11 +1,11 @@
 package br.com.softhouse.dende.repositories.util;
 
+import br.com.softhouse.dende.exceptions.DatabaseException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.Getter;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * POOL DE CONEXÕES COM HIKARICP
@@ -31,7 +31,7 @@ public class ConnectionPool {
     private final ConfigProperties configProperties;
 
     private ConnectionPool() {
-        this.configProperties = new ConfigProperties();
+        this.configProperties = ConfigProperties.fromClasspath();
         this.dataSource = inicializarDataSource();
     }
 
@@ -68,7 +68,11 @@ public class ConnectionPool {
         }
 
         // Retorna um novo HikariDataSource com as configurações estabelecidas
-        return new HikariDataSource(config);
+        try {
+            return new HikariDataSource(config);
+        } catch (RuntimeException e) {
+            throw new DatabaseException("Erro ao inicializar o pool de conexões", e);
+        }
     }
 
     public static synchronized ConnectionPool getInstance() {
@@ -78,8 +82,12 @@ public class ConnectionPool {
         return instance;
     }
 
-    public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+    public Connection getConnection() {
+        try {
+            return dataSource.getConnection();
+        } catch (Exception e) {
+            throw new DatabaseException("Erro ao obter conexão com o banco de dados", e);
+        }
     }
 
     public void close() {

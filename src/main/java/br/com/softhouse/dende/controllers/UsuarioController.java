@@ -3,6 +3,8 @@ package br.com.softhouse.dende.controllers;
 import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
+import br.com.softhouse.dende.exceptions.ApiExceptionMapper;
+import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.dto.ApiResponse;
 import br.com.softhouse.dende.dto.UsuarioDTO;
 import br.com.softhouse.dende.dto.StatusChangeRequestDTO;
@@ -27,18 +29,14 @@ public class UsuarioController {
     // Mapeia a requisição POST /usuarios para cadastrar um novo usuário
     @PostMapping
     public ResponseEntity<ApiResponse<UsuarioDTO>> cadastrar(@RequestBody UsuarioDTO dto) {
-        // Tenta cadastrar o usuário e retorna a resposta adequada
         try {
             UsuarioDTO response = usuarioService.cadastrar(dto);
             ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário cadastrado com sucesso", 201
             );
             return ResponseEntity.status(201, apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
@@ -47,36 +45,28 @@ public class UsuarioController {
     public ResponseEntity<ApiResponse<UsuarioDTO>> alterar(
             @PathVariable(parameter = "usuarioId") Long id,
             @RequestBody UsuarioDTO dto) {
-        // Tenta atualizar o usuário e retorna a resposta adequada
         try {
             UsuarioDTO response = usuarioService.atualizar(id, dto);
             ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário atualizado com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
     // Mapeia a requisição GET /usuarios/{usuarioId} para visualizar os dados de um usuário específico
     @GetMapping(path = "/{usuarioId}")
     public ResponseEntity<ApiResponse<UsuarioDTO>> visualizar(@PathVariable(parameter = "usuarioId") Long id) {
-        // Tenta buscar o usuário por ID e retorna a resposta adequada
         try {
             UsuarioDTO response = usuarioService.buscarPorId(id);
             ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário encontrado", 200
             );
             return ResponseEntity.ok(apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 404, "Not Found"
-            );
-            return ResponseEntity.status(404, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
@@ -86,15 +76,10 @@ public class UsuarioController {
             @PathVariable(parameter = "usuarioId") Long id,
             @PathVariable(parameter = "status") boolean ativar,
             @RequestBody StatusChangeRequestDTO request) {
-        // Tenta ativar ou desativar o usuário com base no status e retorna a resposta adequada
         try {
             if (request == null || request.getSenha() == null || request.getSenha().trim().isEmpty()) {
-                ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
-                        "Senha é obrigatória", 400, "Bad Request"
-                );
-                return ResponseEntity.status(400, apiResponse);
+                throw new ValidationException("Senha é obrigatória");
             }
-            // Verificar se o usuário existe antes de tentar alterar o status
             UsuarioDTO response;
             String operacao;
 
@@ -106,19 +91,12 @@ public class UsuarioController {
                 response = usuarioService.desativarComSenha(id, request.getSenha());
                 operacao = "desativado";
             }
-            // Se a operação for bem-sucedida, retorna a resposta com o status 200 e a mensagem de sucesso
             ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário " + operacao + " com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
-            // Se ocorrer um erro, verifica se é por senha incorreta ou outro motivo e retorna a resposta adequada
-        } catch (IllegalArgumentException e) {
-            int status = e.getMessage().contains("Senha incorreta") ? 401 : 400;
-            String erro = e.getMessage().contains("Senha incorreta") ? "Unauthorized" : "Bad Request";
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), status, erro
-            );
-            return ResponseEntity.status(status, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 }

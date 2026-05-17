@@ -1,47 +1,46 @@
 package br.com.softhouse.dende.repositories;
 
+import br.com.softhouse.dende.exceptions.DatabaseException;
 import br.com.softhouse.dende.model.Usuario;
+import br.com.softhouse.dende.model.enums.Sexo;
+import br.com.softhouse.dende.repositories.util.ConnectionPool;
 import br.com.softhouse.dende.repositories.util.CrudRepository;
+import br.com.softhouse.dende.repositories.util.rowmapper.UsuarioRowMapper;
 
-import java.util.HashMap;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 /**
  * REPOSITÓRIO DE USUÁRIOS
  *
- * Esta classe é responsável por simular um banco de dados em memória para usuários.
+ * Esta classe é responsável por persistir usuários no banco de dados.
  * Ela implementa o padrão SINGLETON, garantindo que exista apenas uma instância
  * em toda a aplicação.
- *
- * Funciona como se fosse uma "tabela" no banco de dados, com índices para busca
- * rápida por ID e por Email.
  */
 
 public class UsuarioRepository implements CrudRepository<Usuario, Long> {
 
-    // Instância única do repositório (padrão Singleton)
     private static UsuarioRepository instance;
 
-    // Mapas para armazenar os usuários, onde a chave é o ID ou Email do usuário e o valor é o objeto Usuario
-    private final Map<Long, Usuario> usuariosPorId;
-    private final Map<String, Usuario> usuariosPorEmail;
+    private static final String SQL_INSERT = "INSERT INTO usuario (nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    private static final String SQL_SELECT_BY_ID = "SELECT id, nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo FROM usuario WHERE id = ? AND tipo_usuario = 'COMUM'";
+    private static final String SQL_SELECT_BY_EMAIL = "SELECT id, nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo FROM usuario WHERE email = ? AND tipo_usuario = 'COMUM'";
+    private static final String SQL_SELECT_ALL = "SELECT id, nome, data_nascimento, sexo, email, senha, tipo_usuario, ativo FROM usuario WHERE tipo_usuario = 'COMUM' ORDER BY id";
+    private static final String SQL_UPDATE = "UPDATE usuario SET nome = ?, data_nascimento = ?, sexo = ?, email = ?, senha = ?, tipo_usuario = ?, ativo = ? WHERE id = ? AND tipo_usuario = 'COMUM'";
+    private static final String SQL_DELETE = "DELETE FROM usuario WHERE id = ? AND tipo_usuario = 'COMUM'";
+    private static final String SQL_EXISTS_EMAIL = "SELECT 1 FROM usuario WHERE email = ? LIMIT 1";
 
-    // Variável para gerar IDs únicos para os usuários
-    private long proximoId;
+    private final ConnectionPool connectionPool;
+    private final UsuarioRowMapper usuarioRowMapper;
 
-    // Construtor privado para impedir a criação de múltiplas instâncias
     private UsuarioRepository() {
-
-        // Inicializa o mapa de IDs como um HashMap vazio
-        this.usuariosPorId = new HashMap<>();
-
-        // Inicializa o mapa de Emails como um HashMap vazio
-        this.usuariosPorEmail = new HashMap<>();
-
-        // Define que o primeiro ID a ser usado será 1
-        this.proximoId = 1;
+        this.connectionPool = ConnectionPool.getInstance();
+        this.usuarioRowMapper = new UsuarioRowMapper();
     }
 
     // Metodo para obter a instância única do repositório
@@ -54,68 +53,164 @@ public class UsuarioRepository implements CrudRepository<Usuario, Long> {
 
     }
 
-    /** CRUD DE USUÁRIOS - Create, Read, Update, Delete */
-
-    // Metodo para salvar um usuário (criar ou atualizar)
     @Override
     public Usuario salvar(Usuario usuario) {
-        if (usuario.getId() == null) {                       // Verifica se o usuário não tem ID (é novo)
-            usuario.setId(proximoId++);                      // Atribui um ID único ao usuário e incrementa o contador para o próximo ID
+        if (usuario == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Usuário é obrigatório");
         }
-        usuariosPorId.put(usuario.getId(), usuario);        // Armazena o usuário no mapa de IDs, usando o ID como chave
-        usuariosPorEmail.put(usuario.getEmail(), usuario);  // Armazena o usuário no mapa de Emails, usando o Email como chave
+
+        if (usuario.getId() == null) {
+            inserir(usuario);
+        } else {
+            atualizar(usuario);
+        }
         return usuario;
     }
 
-    // Metodo para buscar um usuário por ID
     @Override
     public Usuario buscarPorId(Long id) {
-        return usuariosPorId.get(id);
-    }
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
+            statement.setLong(1, id);
 
-    // Metodo para buscar um usuário por email
-    public Usuario buscarPorEmail(String email) {
-        return usuariosPorEmail.get(email);
-    }
-
-    // Metodo para atualizar um usuário existente
-    @Override
-    public void atualizar(Usuario usuario) {
-
-        // Verifica se o usuário tem um ID (deve existir para ser atualizado)
-        if (usuario.getId() != null) {
-            Usuario existente = usuariosPorId.get(usuario.getId()); // Busca o usuário existente pelo ID
-
-            // Verifica se o usuario existe e se o email foi alterado
-            if (existente != null && !existente.getEmail().equals(usuario.getEmail())) {
-
-                // Remove o usuário antigo do mapa de Emails (usando o email antigo como chave)
-                usuariosPorEmail.remove(existente.getEmail());
-
-                // Atualiza o mapa de Emails com a nova entrada de email
-                usuariosPorEmail.put(usuario.getEmail(), usuario);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapUsuario(resultSet);
+                }
+                return null;
             }
-
-            // Atualiza o mapa de IDs (substitui o usuário antigo pelo novo)
-            usuariosPorId.put(usuario.getId(), usuario);
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar usuário por id", e);
         }
     }
 
-    // Metodo para verificar se um email já existe
+    public Usuario buscarPorEmail(String email) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_EMAIL)) {
+            statement.setString(1, email);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapUsuario(resultSet);
+                }
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar usuário por email", e);
+        }
+    }
+
+    @Override
+    public void atualizar(Usuario usuario) {
+        if (usuario == null || usuario.getId() == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Usuário com ID é obrigatório para atualização");
+        }
+
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
+            preencherStatementUsuario(statement, usuario);
+            statement.setLong(8, usuario.getId());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar usuário", e);
+        }
+    }
+
     public boolean emailExiste(String email) {
-        return usuariosPorEmail.containsKey(email);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_EXISTS_EMAIL)) {
+            statement.setString(1, email);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao verificar email do usuário", e);
+        }
     }
 
     @Override
     public void deletar(Long id) {
-        Usuario usuario = usuariosPorId.remove(id);
-        if (usuario != null) {
-            usuariosPorEmail.remove(usuario.getEmail());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao deletar usuário", e);
         }
     }
 
     @Override
     public List<Usuario> listarTodos() {
-        return List.copyOf(usuariosPorId.values());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            List<Usuario> usuarios = new ArrayList<>();
+            while (resultSet.next()) {
+                usuarios.add(mapUsuario(resultSet));
+            }
+            return usuarios;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao listar usuários", e);
+        }
+    }
+
+    private void inserir(Usuario usuario) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            preencherStatementUsuario(statement, usuario);
+            statement.setString(6, "COMUM");
+            statement.executeUpdate();
+
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    usuario.setId(generatedKeys.getLong(1));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao salvar usuário", e);
+        }
+    }
+
+    private void preencherStatementUsuario(PreparedStatement statement, Usuario usuario) throws SQLException {
+        statement.setString(1, usuario.getNome());
+        statement.setObject(2, usuario.getDataNascimento());
+        statement.setString(3, sexoParaBanco(usuario.getSexo()));
+        statement.setString(4, usuario.getEmail());
+        statement.setString(5, usuario.getSenha());
+        statement.setString(6, "COMUM");
+        statement.setBoolean(7, Boolean.TRUE.equals(usuario.getAtivo()));
+    }
+
+    private Usuario mapUsuario(ResultSet resultSet) throws SQLException {
+        String[] row = new String[]{
+                String.valueOf(resultSet.getLong("id")),
+                resultSet.getString("nome"),
+                resultSet.getDate("data_nascimento").toLocalDate().toString(),
+                resultSet.getString("sexo"),
+                resultSet.getString("email"),
+                resultSet.getString("senha"),
+                resultSet.getString("tipo_usuario"),
+                String.valueOf(resultSet.getBoolean("ativo"))
+        };
+        return usuarioRowMapper.mapRow(row);
+    }
+
+    private String sexoParaBanco(Sexo sexo) {
+        if (sexo == null) {
+            return null;
+        }
+
+        switch (sexo) {
+            case MASCULINO:
+                return "M";
+            case FEMININO:
+                return "F";
+            case OUTRO:
+                return "O";
+            default:
+                return sexo.name();
+        }
     }
 }

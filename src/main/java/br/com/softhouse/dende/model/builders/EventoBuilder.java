@@ -1,5 +1,6 @@
 package br.com.softhouse.dende.model.builders;
 
+import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.enums.TipoEvento;
 import br.com.softhouse.dende.model.enums.ModalidadeEvento;
@@ -121,31 +122,31 @@ public class EventoBuilder {
     // Metodo para construir a instância de Evento com os atributos configurados, realizando validações antes de criar o objeto
     public Evento build() {
         if (organizadorId == null) {
-            throw new IllegalStateException("organizadorId é obrigatório");
+            throw new ValidationException("organizadorId é obrigatório");
         }
         if (nome == null || nome.trim().isEmpty()) {
-            throw new IllegalStateException("nome é obrigatório");
+            throw new ValidationException("nome é obrigatório");
         }
         if (dataInicio == null) {
-            throw new IllegalStateException("dataInicio é obrigatória");
+            throw new ValidationException("dataInicio é obrigatória");
         }
         if (dataFinal == null) {
-            throw new IllegalStateException("dataFinal é obrigatória");
+            throw new ValidationException("dataFinal é obrigatória");
         }
         if (tipoEvento == null) {
-            throw new IllegalStateException("tipoEvento é obrigatório");
+            throw new ValidationException("tipoEvento é obrigatório");
         }
         if (modalidade == null) {
-            throw new IllegalStateException("modalidade é obrigatória");
+            throw new ValidationException("modalidade é obrigatória");
         }
         if (capacidadeMaxima == null || capacidadeMaxima <= 0) {
-            throw new IllegalStateException("capacidadeMaxima deve ser maior que zero");
+            throw new ValidationException("capacidadeMaxima deve ser maior que zero");
         }
         if (local == null || local.trim().isEmpty()) {
-            throw new IllegalStateException("local é obrigatório");
+            throw new ValidationException("local é obrigatório");
         }
         if (precoIngresso == null || precoIngresso < 0) {
-            throw new IllegalStateException("precoIngresso deve ser maior ou igual a zero");
+            throw new ValidationException("precoIngresso deve ser maior ou igual a zero");
         }
 
         // Cria uma nova instância de Evento e configura seus atributos com os valores fornecidos ao builder

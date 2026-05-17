@@ -1,5 +1,6 @@
 package br.com.softhouse.dende.repositories.util.rowmapper;
 
+import br.com.softhouse.dende.exceptions.MappingException;
 import br.com.softhouse.dende.model.Empresa;
 import br.com.softhouse.dende.repositories.util.RowMapper;
 
@@ -20,7 +21,7 @@ public class EmpresaRowMapper implements RowMapper<Empresa> {
 
     private void validateRow(String[] row, int expectedMinSize) {
         if (row == null || row.length < expectedMinSize) {
-            throw new IllegalArgumentException("Linha inválida para mapear Empresa. Esperado ao menos " + expectedMinSize + " colunas.");
+            throw new MappingException("Linha inválida para mapear Empresa. Esperado ao menos " + expectedMinSize + " colunas.");
         }
     }
 }

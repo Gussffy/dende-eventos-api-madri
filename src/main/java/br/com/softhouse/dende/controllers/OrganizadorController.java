@@ -3,6 +3,8 @@ package br.com.softhouse.dende.controllers;
 import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
+import br.com.softhouse.dende.exceptions.ApiExceptionMapper;
+import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.dto.ApiResponse;
 import br.com.softhouse.dende.dto.OrganizadorDTO;
 import br.com.softhouse.dende.dto.StatusChangeRequestDTO;
@@ -29,18 +31,14 @@ public class OrganizadorController {
     // Mapeia a rota POST /organizadores para o metodo cadastrar, que recebe os dados do organizador no corpo da requisição
     @PostMapping
     public ResponseEntity<ApiResponse<OrganizadorDTO>> cadastrar(@RequestBody OrganizadorDTO dto) {
-        // Tenta cadastrar o organizador usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             OrganizadorDTO response = organizadorService.cadastrar(dto);
             ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
                     response, "Organizador cadastrado com sucesso", 201
             );
             return ResponseEntity.status(201, apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
@@ -49,36 +47,28 @@ public class OrganizadorController {
     public ResponseEntity<ApiResponse<OrganizadorDTO>> alterar(
             @PathVariable(parameter = "organizadorId") Long id,
             @RequestBody OrganizadorDTO dto) {
-        // Tenta atualizar o organizador usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             OrganizadorDTO response = organizadorService.atualizar(id, dto);
             ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
                     response, "Organizador atualizado com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 400, "Bad Request"
-            );
-            return ResponseEntity.status(400, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
     // Mapeia a rota GET /organizadores/{organizadorId} para o metodo visualizar, que recebe o ID do organizador como parâmetro da rota
     @GetMapping(path = "/{organizadorId}")
     public ResponseEntity<ApiResponse<OrganizadorDTO>> visualizar(@PathVariable(parameter = "organizadorId") Long id) {
-        // Tenta buscar o organizador por ID usando o serviço, e retorna uma resposta formatada com ApiResponse
         try {
             OrganizadorDTO response = organizadorService.buscarPorId(id);
             ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
                     response, "Organizador encontrado", 200
             );
             return ResponseEntity.ok(apiResponse);
-        } catch (IllegalArgumentException e) {
-            ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), 404, "Not Found"
-            );
-            return ResponseEntity.status(404, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 
@@ -88,13 +78,9 @@ public class OrganizadorController {
             @PathVariable(parameter = "organizadorId") Long id,
             @PathVariable(parameter = "status") boolean ativar,
             @RequestBody StatusChangeRequestDTO request) {
-        // Tenta ativar ou desativar o organizador usando o serviço, passando a senha para autenticação, e retorna uma resposta formatada com ApiResponse indicando o resultado da operação
         try {
             if (request == null || request.getSenha() == null || request.getSenha().trim().isEmpty()) {
-                ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
-                        "Senha é obrigatória", 400, "Bad Request"
-                );
-                return ResponseEntity.status(400, apiResponse);
+                throw new ValidationException("Senha é obrigatória");
             }
 
             OrganizadorDTO response;
@@ -113,13 +99,8 @@ public class OrganizadorController {
             );
             return ResponseEntity.ok(apiResponse);
 
-        } catch (IllegalArgumentException e) {
-            int status = e.getMessage().contains("Senha incorreta") ? 401 : 400;
-            String erro = e.getMessage().contains("Senha incorreta") ? "Unauthorized" : "Bad Request";
-            ApiResponse<OrganizadorDTO> apiResponse = new ApiResponse<>(
-                    e.getMessage(), status, erro
-            );
-            return ResponseEntity.status(status, apiResponse);
+        } catch (Exception e) {
+            return ApiExceptionMapper.toResponse(e);
         }
     }
 

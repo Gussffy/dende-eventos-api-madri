@@ -1,5 +1,8 @@
 package br.com.softhouse.dende.services;
 
+import br.com.softhouse.dende.exceptions.ConflictException;
+import br.com.softhouse.dende.exceptions.NotFoundException;
+import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.dto.EventoDTO;
 import br.com.softhouse.dende.dto.EventoResumoDTO;
 import br.com.softhouse.dende.mappers.EventoMapper;
@@ -39,24 +42,24 @@ public class EventoService {
         this.ingressoRepository = IngressoRepository.getInstance();
     }
 
-    public EventoDTO cadastrar(Long organizadorId, EventoDTO dto) throws IllegalArgumentException {
+    public EventoDTO cadastrar(Long organizadorId, EventoDTO dto) {
         // Verificar se o organizador existe e está ativo
         Organizador org = organizadorRepository.buscarPorId(organizadorId);
         if (org == null) {
-            throw new IllegalArgumentException("Organizador não encontrado");
+            throw new NotFoundException("Organizador não encontrado");
         }
         if (!org.getAtivo()) {
-            throw new IllegalArgumentException("Organizador inativo não pode cadastrar eventos");
+            throw new ConflictException("Organizador inativo não pode cadastrar eventos");
         }
 
         // Validar evento principal (se existir)
         if (dto.getEventoPrincipalId() != null) {
             Evento principal = eventoRepository.buscarPorId(dto.getEventoPrincipalId());
             if (principal == null) {
-                throw new IllegalArgumentException("Evento principal não encontrado");
+                throw new NotFoundException("Evento principal não encontrado");
             }
             if (!principal.getOrganizadorId().equals(organizadorId)) {
-                throw new IllegalArgumentException("Evento principal não pertence a este organizador");
+                throw new ConflictException("Evento principal não pertence a este organizador");
             }
         }
 
@@ -81,7 +84,7 @@ public class EventoService {
 
         // US7: Validar datas
         if (!evento.validarDatas()) {
-            throw new IllegalArgumentException("Datas inválidas: verifique se a data de início é futura, " +
+            throw new ValidationException("Datas inválidas: verifique se a data de início é futura, " +
                     "data de fim é posterior à data de início e duração mínima de 30 minutos");
         }
 
@@ -95,43 +98,43 @@ public class EventoService {
         return EventoMapper.toDTO(evento);
     }
 
-    public EventoDTO buscarPorId(Long id) throws IllegalArgumentException {
+    public EventoDTO buscarPorId(Long id) {
         Evento evento = eventoRepository.buscarPorId(id);
         if (evento == null) {
-            throw new IllegalArgumentException("Evento não encontrado");
+            throw new NotFoundException("Evento não encontrado");
         }
         return EventoMapper.toDTO(evento);
     }
 
-    public Evento buscarEntidadePorId(Long id) throws IllegalArgumentException {
+    public Evento buscarEntidadePorId(Long id) {
         Evento evento = eventoRepository.buscarPorId(id);
         if (evento == null) {
-            throw new IllegalArgumentException("Evento não encontrado");
+            throw new NotFoundException("Evento não encontrado");
         }
         return evento;
     }
 
-    public EventoDTO atualizar(Long organizadorId, Long eventoId, EventoDTO dto) throws IllegalArgumentException {
+    public EventoDTO atualizar(Long organizadorId, Long eventoId, EventoDTO dto) {
         Evento existente = buscarEntidadePorId(eventoId);
 
         // Verificar se o evento pertence ao organizador
         if (!existente.getOrganizadorId().equals(organizadorId)) {
-            throw new IllegalArgumentException("Este evento não pertence ao organizador");
+            throw new ConflictException("Este evento não pertence ao organizador");
         }
 
         // US8: Só pode alterar eventos ativos
         if (!existente.getAtivo()) {
-            throw new IllegalArgumentException("Não é possível alterar um evento inativo");
+            throw new ConflictException("Não é possível alterar um evento inativo");
         }
 
         // Validar evento principal se foi alterado
         if (dto.getEventoPrincipalId() != null && !dto.getEventoPrincipalId().equals(existente.getEventoPrincipalId())) {
             Evento principal = eventoRepository.buscarPorId(dto.getEventoPrincipalId());
             if (principal == null) {
-                throw new IllegalArgumentException("Evento principal não encontrado");
+                throw new NotFoundException("Evento principal não encontrado");
             }
             if (!principal.getOrganizadorId().equals(organizadorId)) {
-                throw new IllegalArgumentException("Evento principal não pertence a este organizador");
+                throw new ConflictException("Evento principal não pertence a este organizador");
             }
         }
 
@@ -140,7 +143,7 @@ public class EventoService {
 
         // Validar datas novamente se foram alteradas
         if (!eventoAtualizado.validarDatas()) {
-            throw new IllegalArgumentException("Datas inválidas após alteração");
+            throw new ValidationException("Datas inválidas após alteração");
         }
 
         // Salvar alterações
@@ -150,19 +153,19 @@ public class EventoService {
         return EventoMapper.toDTO(eventoAtualizado);
     }
 
-    public EventoDTO ativar(Long organizadorId, Long eventoId) throws IllegalArgumentException {
+    public EventoDTO ativar(Long organizadorId, Long eventoId) {
         Evento evento = buscarEntidadePorId(eventoId);
 
         if (!evento.getOrganizadorId().equals(organizadorId)) {
-            throw new IllegalArgumentException("Este evento não pertence ao organizador");
+            throw new ConflictException("Este evento não pertence ao organizador");
         }
 
         if (evento.getAtivo()) {
-            throw new IllegalArgumentException("Evento já está ativo");
+            throw new ConflictException("Evento já está ativo");
         }
 
         if (!evento.podeSerAtivado()) {
-            throw new IllegalArgumentException("Evento não pode ser ativado: verifique as datas");
+            throw new ConflictException("Evento não pode ser ativado: verifique as datas");
         }
 
         evento.setAtivo(true);
@@ -171,15 +174,15 @@ public class EventoService {
         return EventoMapper.toDTO(evento);
     }
 
-    public EventoDTO desativar(Long organizadorId, Long eventoId) throws IllegalArgumentException {
+    public EventoDTO desativar(Long organizadorId, Long eventoId) {
         Evento evento = buscarEntidadePorId(eventoId);
 
         if (!evento.getOrganizadorId().equals(organizadorId)) {
-            throw new IllegalArgumentException("Este evento não pertence ao organizador");
+            throw new ConflictException("Este evento não pertence ao organizador");
         }
 
         if (!evento.getAtivo()) {
-            throw new IllegalArgumentException("Evento já está inativo");
+            throw new ConflictException("Evento já está inativo");
         }
 
         // US10: Se tiver ingressos vendidos, reembolsar

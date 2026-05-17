@@ -1,5 +1,6 @@
 package br.com.softhouse.dende.repositories.util.rowmapper;
 
+import br.com.softhouse.dende.exceptions.MappingException;
 import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.enums.ModalidadeEvento;
 import br.com.softhouse.dende.model.enums.TipoEvento;
@@ -33,17 +34,33 @@ public class EventoRowMapper implements RowMapper<Evento> {
 
     private TipoEvento mapTipoEvento(String value) {
         String normalized = RowMapperParsers.text(value);
-        return normalized == null ? null : TipoEvento.valueOf(normalized.toUpperCase());
+        if (normalized == null) {
+            return null;
+        }
+
+        try {
+            return TipoEvento.valueOf(normalized.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new MappingException("Tipo de evento inválido: " + value, e);
+        }
     }
 
     private ModalidadeEvento mapModalidade(String value) {
         String normalized = RowMapperParsers.text(value);
-        return normalized == null ? null : ModalidadeEvento.valueOf(normalized.toUpperCase());
+        if (normalized == null) {
+            return null;
+        }
+
+        try {
+            return ModalidadeEvento.valueOf(normalized.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new MappingException("Modalidade de evento inválida: " + value, e);
+        }
     }
 
     private void validateRow(String[] row, int expectedMinSize) {
         if (row == null || row.length < expectedMinSize) {
-            throw new IllegalArgumentException("Linha inválida para mapear Evento. Esperado ao menos " + expectedMinSize + " colunas.");
+            throw new MappingException("Linha inválida para mapear Evento. Esperado ao menos " + expectedMinSize + " colunas.");
         }
     }
 }

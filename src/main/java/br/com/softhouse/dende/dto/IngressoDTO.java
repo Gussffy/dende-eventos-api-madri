@@ -19,7 +19,6 @@ public class IngressoDTO {
     private Double valorPago;
     private StatusIngresso status;
     private Boolean ingressoPrincipal;
-    private Long eventoVinculadoId;
 
     public IngressoDTO() {}
 
@@ -59,7 +58,4 @@ public class IngressoDTO {
 
     public Boolean getIngressoPrincipal() { return ingressoPrincipal; }
     public void setIngressoPrincipal(Boolean ingressoPrincipal) { this.ingressoPrincipal = ingressoPrincipal; }
-
-    public Long getEventoVinculadoId() { return eventoVinculadoId; }
-    public void setEventoVinculadoId(Long eventoVinculadoId) { this.eventoVinculadoId = eventoVinculadoId; }
 }

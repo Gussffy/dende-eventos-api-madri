@@ -1,56 +1,48 @@
 package br.com.softhouse.dende.repositories;
 
+import br.com.softhouse.dende.exceptions.DatabaseException;
 import br.com.softhouse.dende.model.Empresa;
+import br.com.softhouse.dende.repositories.util.ConnectionPool;
 import br.com.softhouse.dende.repositories.util.CrudRepository;
+import br.com.softhouse.dende.repositories.util.rowmapper.EmpresaRowMapper;
 
-import java.util.HashMap;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * REPOSITÓRIO DE EMPRESA
  *
- * Esta classe é responsável por gerenciar o acesso aos dados de Empresa.
- * Implementa o padrão SINGLETON, garantindo que exista apenas uma instância
- * em toda a aplicação.
- *
- * Armazena empresas em memória com índices por ID e por Organizador ID,
- * permitindo buscas rápidas e eficientes.
- *
- * Relacionamento com Organizador:
- * - 1 organizador → 0..1 empresa (UNIQUE na tabela)
- * - Uma empresa "pertence" a exatamente um organizador
- * - Deletar um organizador em cascata deleta a empresa
+ * Persistência JDBC para a tabela empresa.
  */
 public class EmpresaRepository implements CrudRepository<Empresa, Long> {
 
-    // Instância única do repositório (padrão Singleton)
     private static EmpresaRepository instance;
 
-    // Mapas para armazenar as empresas com índices para busca rápida
-    private final Map<Long, Empresa> empresasPorId;                    // id → Empresa
-    private final Map<Long, Empresa> empresasPorOrganizadorId;         // organizador_id → Empresa
-    private final Map<String, Empresa> empresasPorCnpj;                // cnpj → Empresa
+    private static final String SQL_INSERT = "INSERT INTO empresa (organizador_id, cnpj, razao_social, nome_fantasia) VALUES (?, ?, ?, ?)";
+    private static final String SQL_SELECT_BY_ID = "SELECT id, organizador_id, cnpj, razao_social, nome_fantasia FROM empresa WHERE id = ?";
+    private static final String SQL_SELECT_BY_ORGANIZADOR = "SELECT id, organizador_id, cnpj, razao_social, nome_fantasia FROM empresa WHERE organizador_id = ?";
+    private static final String SQL_SELECT_BY_CNPJ = "SELECT id, organizador_id, cnpj, razao_social, nome_fantasia FROM empresa WHERE cnpj = ?";
+    private static final String SQL_SELECT_ALL = "SELECT id, organizador_id, cnpj, razao_social, nome_fantasia FROM empresa ORDER BY id";
+    private static final String SQL_UPDATE = "UPDATE empresa SET organizador_id = ?, cnpj = ?, razao_social = ?, nome_fantasia = ? WHERE id = ?";
+    private static final String SQL_DELETE = "DELETE FROM empresa WHERE id = ?";
+    private static final String SQL_DELETE_BY_ORGANIZADOR = "DELETE FROM empresa WHERE organizador_id = ?";
+    private static final String SQL_EXISTS_CNPJ = "SELECT 1 FROM empresa WHERE cnpj = ? LIMIT 1";
+    private static final String SQL_EXISTS_ORGANIZADOR = "SELECT 1 FROM empresa WHERE organizador_id = ? LIMIT 1";
+    private static final String SQL_COUNT = "SELECT COUNT(*) FROM empresa";
 
-    // Variável para gerar IDs únicos automaticamente
-    private long proximoId;
+    private final ConnectionPool connectionPool;
+    private final EmpresaRowMapper rowMapper;
 
-    /**
-     * Construtor privado para impedir a criação de múltiplas instâncias.
-     */
     private EmpresaRepository() {
-        this.empresasPorId = new HashMap<>();
-        this.empresasPorOrganizadorId = new HashMap<>();
-        this.empresasPorCnpj = new HashMap<>();
-        this.proximoId = 1;
+        this.connectionPool = ConnectionPool.getInstance();
+        this.rowMapper = new EmpresaRowMapper();
     }
 
-    /**
-     * Metodo para obter a instância única do repositório (Singleton).
-     * Sincronizado para garantir thread-safety.
-     *
-     * @return A instância única do repositório
-     */
     public static synchronized EmpresaRepository getInstance() {
         if (instance == null) {
             instance = new EmpresaRepository();
@@ -58,147 +50,172 @@ public class EmpresaRepository implements CrudRepository<Empresa, Long> {
         return instance;
     }
 
-    /**
-     * Salva uma nova empresa ou atualiza uma existente.
-     * Se a empresa não possuir ID, um novo ID é gerado automaticamente.
-     *
-     * @param empresa a empresa a ser salva
-     * @return a empresa salva com ID atribuído
-     */
     @Override
     public Empresa salvar(Empresa empresa) {
-        if (empresa.getId() == null) {
-            empresa.setId(proximoId++);
+        if (empresa == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Empresa é obrigatória");
         }
-
-        empresasPorId.put(empresa.getId(), empresa);
-        empresasPorOrganizadorId.put(empresa.getOrganizadorId(), empresa);
-        empresasPorCnpj.put(empresa.getCnpj(), empresa);
-
+        if (empresa.getId() == null) {
+            inserir(empresa);
+        } else {
+            atualizar(empresa);
+        }
         return empresa;
     }
 
-    /**
-     * Busca uma empresa por seu ID.
-     *
-     * @param id o ID da empresa
-     * @return a empresa encontrada, ou null se não existir
-     */
     @Override
     public Empresa buscarPorId(Long id) {
-        return empresasPorId.get(id);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ID)) {
+            statement.setLong(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapEmpresa(resultSet) : null;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar empresa por id", e);
+        }
     }
 
-    /**
-     * Busca uma empresa pelo ID do organizador.
-     * Como a relação é 1:1, retorna no máximo uma empresa.
-     *
-     * @param organizadorId o ID do organizador
-     * @return a empresa do organizador, ou null se não existir
-     */
     public Empresa buscarPorOrganizadorId(Long organizadorId) {
-        return empresasPorOrganizadorId.get(organizadorId);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_ORGANIZADOR)) {
+            statement.setLong(1, organizadorId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapEmpresa(resultSet) : null;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar empresa por organizador", e);
+        }
     }
 
-    /**
-     * Busca uma empresa pelo CNPJ.
-     * CNPJ é único na tabela, portanto retorna no máximo uma empresa.
-     *
-     * @param cnpj o CNPJ da empresa
-     * @return a empresa encontrada, ou null se não existir
-     */
     public Empresa buscarPorCnpj(String cnpj) {
-        return empresasPorCnpj.get(cnpj);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_BY_CNPJ)) {
+            statement.setString(1, cnpj);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? mapEmpresa(resultSet) : null;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar empresa por CNPJ", e);
+        }
     }
 
-    /**
-     * Verifica se um CNPJ já existe no repositório.
-     *
-     * @param cnpj o CNPJ a ser verificado
-     * @return true se o CNPJ já está registrado, false caso contrário
-     */
     public boolean cnpjExiste(String cnpj) {
-        return empresasPorCnpj.containsKey(cnpj);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_EXISTS_CNPJ)) {
+            statement.setString(1, cnpj);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao verificar CNPJ da empresa", e);
+        }
     }
 
-    /**
-     * Verifica se um organizador já possui uma empresa vinculada.
-     *
-     * @param organizadorId o ID do organizador
-     * @return true se o organizador possui uma empresa, false caso contrário
-     */
     public boolean organizadorTemEmpresa(Long organizadorId) {
-        return empresasPorOrganizadorId.containsKey(organizadorId);
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_EXISTS_ORGANIZADOR)) {
+            statement.setLong(1, organizadorId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao verificar empresa do organizador", e);
+        }
     }
 
-    /**
-     * Atualiza uma empresa existente.
-     *
-     * @param empresa a empresa com dados atualizados
-     */
     @Override
     public void atualizar(Empresa empresa) {
-        if (empresa.getId() != null) {
-            Empresa existente = empresasPorId.get(empresa.getId());
+        if (empresa == null || empresa.getId() == null) {
+            throw new br.com.softhouse.dende.exceptions.ValidationException("Empresa com ID é obrigatória para atualização");
+        }
 
-            if (existente != null) {
-                // Se o CNPJ foi alterado, atualiza o índice de CNPJ
-                if (!existente.getCnpj().equals(empresa.getCnpj())) {
-                    empresasPorCnpj.remove(existente.getCnpj());
-                    empresasPorCnpj.put(empresa.getCnpj(), empresa);
-                }
-
-                // Atualiza a empresa no mapa de IDs
-                empresasPorId.put(empresa.getId(), empresa);
-
-                // Atualiza o mapa de organizador (normalmente não muda, mas deixamos a opção)
-                if (!existente.getOrganizadorId().equals(empresa.getOrganizadorId())) {
-                    empresasPorOrganizadorId.remove(existente.getOrganizadorId());
-                    empresasPorOrganizadorId.put(empresa.getOrganizadorId(), empresa);
-                }
-            }
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE)) {
+            preencherStatement(statement, empresa);
+            statement.setLong(5, empresa.getId());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar empresa", e);
         }
     }
 
-    /**
-     * Deleta uma empresa pelo ID.
-     *
-     * @param id o ID da empresa a ser deletada
-     */
     @Override
     public void deletar(Long id) {
-        Empresa empresa = empresasPorId.remove(id);
-        if (empresa != null) {
-            empresasPorOrganizadorId.remove(empresa.getOrganizadorId());
-            empresasPorCnpj.remove(empresa.getCnpj());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
+            statement.setLong(1, id);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao deletar empresa", e);
         }
     }
 
-    /**
-     * Deleta todas as empresas de um organizador (usado quando organizador é deletado em cascata).
-     *
-     * @param organizadorId o ID do organizador
-     */
     public void deletarPorOrganizadorId(Long organizadorId) {
-        Empresa empresa = empresasPorOrganizadorId.remove(organizadorId);
-        if (empresa != null) {
-            empresasPorId.remove(empresa.getId());
-            empresasPorCnpj.remove(empresa.getCnpj());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BY_ORGANIZADOR)) {
+            statement.setLong(1, organizadorId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao deletar empresa por organizador", e);
         }
     }
 
-    /**
-     * Retorna o número total de empresas registradas.
-     *
-     * @return quantidade de empresas
-     */
     public int contarEmpresas() {
-        return empresasPorId.size();
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_COUNT);
+             ResultSet resultSet = statement.executeQuery()) {
+            return resultSet.next() ? resultSet.getInt(1) : 0;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao contar empresas", e);
+        }
     }
 
     @Override
     public List<Empresa> listarTodos() {
-        return List.copyOf(empresasPorId.values());
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_ALL);
+             ResultSet resultSet = statement.executeQuery()) {
+            List<Empresa> empresas = new ArrayList<>();
+            while (resultSet.next()) {
+                empresas.add(mapEmpresa(resultSet));
+            }
+            return empresas;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao listar empresas", e);
+        }
+    }
+
+    private void inserir(Empresa empresa) {
+        try (Connection connection = connectionPool.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+            preencherStatement(statement, empresa);
+            statement.executeUpdate();
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    empresa.setId(generatedKeys.getLong(1));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao salvar empresa", e);
+        }
+    }
+
+    private void preencherStatement(PreparedStatement statement, Empresa empresa) throws SQLException {
+        statement.setObject(1, empresa.getOrganizadorId());
+        statement.setString(2, empresa.getCnpj());
+        statement.setString(3, empresa.getRazaoSocial());
+        statement.setString(4, empresa.getNomeFantasia());
+    }
+
+    private Empresa mapEmpresa(ResultSet resultSet) throws SQLException {
+        String[] row = new String[]{
+                String.valueOf(resultSet.getLong("id")),
+                String.valueOf(resultSet.getLong("organizador_id")),
+                resultSet.getString("cnpj"),
+                resultSet.getString("razao_social"),
+                resultSet.getString("nome_fantasia")
+        };
+        return rowMapper.mapRow(row);
     }
 }
-
