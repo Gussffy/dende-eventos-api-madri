@@ -4,8 +4,10 @@ import br.com.softhouse.dende.exceptions.ConflictException;
 import br.com.softhouse.dende.exceptions.NotFoundException;
 import br.com.softhouse.dende.exceptions.UnauthorizedException;
 import br.com.softhouse.dende.exceptions.ValidationException;
-import br.com.softhouse.dende.dto.EmpresaDTO;
-import br.com.softhouse.dende.dto.OrganizadorDTO;
+import br.com.softhouse.dende.dto.request.EmpresaRequestDTO;
+import br.com.softhouse.dende.dto.request.OrganizadorRequestDTO;
+import br.com.softhouse.dende.dto.response.EmpresaResponseDTO;
+import br.com.softhouse.dende.dto.response.OrganizadorResponseDTO;
 import br.com.softhouse.dende.mappers.EmpresaMapper;
 import br.com.softhouse.dende.mappers.OrganizadorMapper;
 import br.com.softhouse.dende.model.Organizador;
@@ -25,7 +27,7 @@ import br.com.softhouse.dende.repositories.OrganizadorRepository;
  * - Tratamento de exceções: Lança exceções com mensagens claras para o controller
  *
  * Nota: O cadastro de empresa é opcional e acontece junto com o cadastro do organizador.
- * Não existem endpoints próprios para empresa; ela é extraída do OrganizadorDTO quando enviada.
+ * Não existem endpoints próprios para empresa; ela é extraída do OrganizadorRequestDTO quando enviada.
  */
 public class OrganizadorService {
 
@@ -39,7 +41,7 @@ public class OrganizadorService {
         this.empresaService = new EmpresaService();
     }
 
-    public OrganizadorDTO cadastrar(OrganizadorDTO dto) {
+    public OrganizadorResponseDTO cadastrar(OrganizadorRequestDTO dto) {
         if (dto == null) {
             throw new ValidationException("Dados do organizador são obrigatórios");
         }
@@ -76,8 +78,8 @@ public class OrganizadorService {
 
         // Se houver dados de empresa, cadastrá-la junto com o organizador
         if (temDadosEmpresa(dto)) {
-            EmpresaDTO empresaDTO = OrganizadorMapper.toEmpresaDTO(dto, organizador.getId());
-            EmpresaDTO empresaCadastrada = empresaService.cadastrar(empresaDTO);
+            EmpresaRequestDTO empresaDTO = OrganizadorMapper.toEmpresaDTO(dto, organizador.getId());
+            EmpresaResponseDTO empresaCadastrada = empresaService.cadastrar(empresaDTO);
             organizador.setEmpresa(EmpresaMapper.toEntity(empresaCadastrada));
             organizadorRepository.atualizar(organizador);
         }
@@ -85,7 +87,7 @@ public class OrganizadorService {
         return OrganizadorMapper.toDTO(organizador);
     }
 
-    public OrganizadorDTO buscarPorId(Long id) {
+    public OrganizadorResponseDTO buscarPorId(Long id) {
         Organizador organizador = organizadorRepository.buscarPorId(id);
         if (organizador == null) {
             throw new NotFoundException("Organizador não encontrado");
@@ -109,7 +111,7 @@ public class OrganizadorService {
         return organizador;
     }
 
-    public OrganizadorDTO atualizar(Long id, OrganizadorDTO dto) {
+    public OrganizadorResponseDTO atualizar(Long id, OrganizadorRequestDTO dto) {
         if (id == null) {
             throw new ValidationException("ID do organizador é obrigatório");
         }
@@ -128,7 +130,7 @@ public class OrganizadorService {
         return OrganizadorMapper.toDTO(organizadorAtualizado);
     }
 
-    public OrganizadorDTO ativarComSenha(Long id, String senha) {
+    public OrganizadorResponseDTO ativarComSenha(Long id, String senha) {
         Organizador organizador = buscarEntidadePorId(id);
 
         if (!organizador.getSenha().equals(senha)) {
@@ -145,7 +147,7 @@ public class OrganizadorService {
         return OrganizadorMapper.toDTO(organizador);
     }
 
-    public OrganizadorDTO desativarComSenha(Long id, String senha) {
+    public OrganizadorResponseDTO desativarComSenha(Long id, String senha) {
         Organizador organizador = buscarEntidadePorId(id);
 
         if (!organizador.getSenha().equals(senha)) {
@@ -170,7 +172,7 @@ public class OrganizadorService {
         return organizadorRepository.emailExiste(email);
     }
 
-    private void validarDadosEmpresaOpcional(OrganizadorDTO dto) {
+    private void validarDadosEmpresaOpcional(OrganizadorRequestDTO dto) {
         boolean temAlgumDado = temAlgumDadoEmpresa(dto);
         if (!temAlgumDado) {
             return;
@@ -187,11 +189,11 @@ public class OrganizadorService {
         }
     }
 
-    private boolean temDadosEmpresa(OrganizadorDTO dto) {
+    private boolean temDadosEmpresa(OrganizadorRequestDTO dto) {
         return dto.getCnpj() != null && !dto.getCnpj().trim().isEmpty();
     }
 
-    private boolean temAlgumDadoEmpresa(OrganizadorDTO dto) {
+    private boolean temAlgumDadoEmpresa(OrganizadorRequestDTO dto) {
         return (dto.getCnpj() != null && !dto.getCnpj().trim().isEmpty())
                 || (dto.getRazaoSocial() != null && !dto.getRazaoSocial().trim().isEmpty())
                 || (dto.getNomeFantasia() != null && !dto.getNomeFantasia().trim().isEmpty());

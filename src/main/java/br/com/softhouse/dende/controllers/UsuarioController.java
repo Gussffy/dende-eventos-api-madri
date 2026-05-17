@@ -5,9 +5,10 @@ import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
 import br.com.softhouse.dende.exceptions.ApiExceptionMapper;
 import br.com.softhouse.dende.exceptions.ValidationException;
-import br.com.softhouse.dende.dto.ApiResponse;
-import br.com.softhouse.dende.dto.UsuarioDTO;
-import br.com.softhouse.dende.dto.StatusChangeRequestDTO;
+import br.com.softhouse.dende.dto.request.StatusChangeRequestDTO;
+import br.com.softhouse.dende.dto.request.UsuarioRequestDTO;
+import br.com.softhouse.dende.dto.response.ApiResponse;
+import br.com.softhouse.dende.dto.response.UsuarioResponseDTO;
 import br.com.softhouse.dende.services.UsuarioService;
 
 /**
@@ -28,10 +29,10 @@ public class UsuarioController {
 
     // Mapeia a requisição POST /usuarios para cadastrar um novo usuário
     @PostMapping
-    public ResponseEntity<ApiResponse<UsuarioDTO>> cadastrar(@RequestBody UsuarioDTO dto) {
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> cadastrar(@RequestBody UsuarioRequestDTO dto) {
         try {
-            UsuarioDTO response = usuarioService.cadastrar(dto);
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
+            UsuarioResponseDTO response = usuarioService.cadastrar(dto);
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário cadastrado com sucesso", 201
             );
             return ResponseEntity.status(201, apiResponse);
@@ -42,12 +43,12 @@ public class UsuarioController {
 
     // Mapeia a requisição PUT /usuarios/{usuarioId} para atualizar os dados de um usuário existente
     @PutMapping(path = "/{usuarioId}")
-    public ResponseEntity<ApiResponse<UsuarioDTO>> alterar(
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> alterar(
             @PathVariable(parameter = "usuarioId") Long id,
-            @RequestBody UsuarioDTO dto) {
+            @RequestBody UsuarioRequestDTO dto) {
         try {
-            UsuarioDTO response = usuarioService.atualizar(id, dto);
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
+            UsuarioResponseDTO response = usuarioService.atualizar(id, dto);
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário atualizado com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
@@ -58,10 +59,10 @@ public class UsuarioController {
 
     // Mapeia a requisição GET /usuarios/{usuarioId} para visualizar os dados de um usuário específico
     @GetMapping(path = "/{usuarioId}")
-    public ResponseEntity<ApiResponse<UsuarioDTO>> visualizar(@PathVariable(parameter = "usuarioId") Long id) {
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> visualizar(@PathVariable(parameter = "usuarioId") Long id) {
         try {
-            UsuarioDTO response = usuarioService.buscarPorId(id);
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
+            UsuarioResponseDTO response = usuarioService.buscarPorId(id);
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário encontrado", 200
             );
             return ResponseEntity.ok(apiResponse);
@@ -72,7 +73,7 @@ public class UsuarioController {
 
     // Mapeia a requisição PATCH /usuarios/{usuarioId}/{status} para ativar ou desativar um usuário, exigindo a senha para autenticação
     @PatchMapping(path = "/{usuarioId}/{status}")
-    public ResponseEntity<ApiResponse<UsuarioDTO>> alterarStatus(
+    public ResponseEntity<ApiResponse<UsuarioResponseDTO>> alterarStatus(
             @PathVariable(parameter = "usuarioId") Long id,
             @PathVariable(parameter = "status") boolean ativar,
             @RequestBody StatusChangeRequestDTO request) {
@@ -80,7 +81,7 @@ public class UsuarioController {
             if (request == null || request.getSenha() == null || request.getSenha().trim().isEmpty()) {
                 throw new ValidationException("Senha é obrigatória");
             }
-            UsuarioDTO response;
+            UsuarioResponseDTO response;
             String operacao;
 
             // O serviço de usuário irá verificar a senha e realizar a ativação ou desativação conforme o valor de "ativar"
@@ -91,7 +92,7 @@ public class UsuarioController {
                 response = usuarioService.desativarComSenha(id, request.getSenha());
                 operacao = "desativado";
             }
-            ApiResponse<UsuarioDTO> apiResponse = new ApiResponse<>(
+            ApiResponse<UsuarioResponseDTO> apiResponse = new ApiResponse<>(
                     response, "Usuário " + operacao + " com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);

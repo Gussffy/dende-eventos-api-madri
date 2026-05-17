@@ -5,11 +5,11 @@ import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
 import br.com.softhouse.dende.exceptions.ApiExceptionMapper;
 import br.com.softhouse.dende.exceptions.ValidationException;
-import br.com.softhouse.dende.dto.ApiResponse;
-import br.com.softhouse.dende.dto.CompraRequestDTO;
-import br.com.softhouse.dende.dto.CompraResponseDTO;
-import br.com.softhouse.dende.dto.CancelamentoResponseDTO;
-import br.com.softhouse.dende.dto.IngressoDTO;
+import br.com.softhouse.dende.dto.request.CompraRequestDTO;
+import br.com.softhouse.dende.dto.response.ApiResponse;
+import br.com.softhouse.dende.dto.response.CancelamentoResponseDTO;
+import br.com.softhouse.dende.dto.response.CompraResponseDTO;
+import br.com.softhouse.dende.dto.response.IngressoResponseDTO;
 import br.com.softhouse.dende.services.IngressoService;
 import java.util.List;
 
@@ -72,14 +72,14 @@ public class IngressoController {
 
     // Mapeia a rota GET /usuarios/{usuarioId}/ingressos para o metodo listar, que recebe o ID do usuário no caminho da requisição
     @GetMapping(path = "/usuarios/{usuarioId}/ingressos")
-    public ResponseEntity<ApiResponse<List<IngressoDTO>>> listar(@PathVariable(parameter = "usuarioId") Long usuarioId) {
+    public ResponseEntity<ApiResponse<List<IngressoResponseDTO>>> listar(@PathVariable(parameter = "usuarioId") Long usuarioId) {
         try {
             if (usuarioId == null) {
                 throw new ValidationException("ID do usuário é obrigatório");
             }
 
-            List<IngressoDTO> ingressos = ingressoService.listarPorUsuario(usuarioId);
-            ApiResponse<List<IngressoDTO>> apiResponse = new ApiResponse<>(
+            List<IngressoResponseDTO> ingressos = ingressoService.listarPorUsuario(usuarioId);
+            ApiResponse<List<IngressoResponseDTO>> apiResponse = new ApiResponse<>(
                     ingressos, "Ingressos listados com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);

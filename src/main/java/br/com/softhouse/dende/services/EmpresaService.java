@@ -3,7 +3,8 @@ package br.com.softhouse.dende.services;
 import br.com.softhouse.dende.exceptions.ConflictException;
 import br.com.softhouse.dende.exceptions.NotFoundException;
 import br.com.softhouse.dende.exceptions.ValidationException;
-import br.com.softhouse.dende.dto.EmpresaDTO;
+import br.com.softhouse.dende.dto.request.EmpresaRequestDTO;
+import br.com.softhouse.dende.dto.response.EmpresaResponseDTO;
 import br.com.softhouse.dende.mappers.EmpresaMapper;
 import br.com.softhouse.dende.model.Empresa;
 import br.com.softhouse.dende.repositories.EmpresaRepository;
@@ -43,10 +44,10 @@ public class EmpresaService {
      * - Organizador não pode ter mais de uma empresa
      *
      * @param dto dados da empresa a cadastrar
-     * @return EmpresaDTO da empresa cadastrada
+     * @return EmpresaResponseDTO da empresa cadastrada
      * @throws IllegalArgumentException se alguma validação falhar
      */
-    public EmpresaDTO cadastrar(EmpresaDTO dto) {
+    public EmpresaResponseDTO cadastrar(EmpresaRequestDTO dto) {
         // Validações
         if (dto.getOrganizadorId() == null) {
             throw new ValidationException("ID do organizador é obrigatório");
@@ -91,7 +92,7 @@ public class EmpresaService {
      * @return EmpresaDTO encontrada
      * @throws IllegalArgumentException se a empresa não existir
      */
-    public EmpresaDTO buscarPorId(Long id) {
+    public EmpresaResponseDTO buscarPorId(Long id) {
         if (id == null || id <= 0) {
             throw new ValidationException("ID inválido");
         }
@@ -111,7 +112,7 @@ public class EmpresaService {
      * @return EmpresaDTO do organizador ou null se não tiver empresa
      * @throws IllegalArgumentException se o ID do organizador for inválido
      */
-    public EmpresaDTO buscarPorOrganizadorId(Long organizadorId) {
+    public EmpresaResponseDTO buscarPorOrganizadorId(Long organizadorId) {
         if (organizadorId == null || organizadorId <= 0) {
             throw new ValidationException("ID do organizador inválido");
         }
@@ -131,7 +132,7 @@ public class EmpresaService {
      * @return EmpresaDTO encontrada
      * @throws IllegalArgumentException se o CNPJ for inválido ou empresa não existir
      */
-    public EmpresaDTO buscarPorCnpj(String cnpj) {
+    public EmpresaResponseDTO buscarPorCnpj(String cnpj) {
         if (cnpj == null || cnpj.trim().isEmpty()) {
             throw new ValidationException("CNPJ é obrigatório");
         }
@@ -154,10 +155,10 @@ public class EmpresaService {
      *
      * @param id o ID da empresa a atualizar
      * @param dto dados atualizados
-     * @return EmpresaDTO atualizada
+     * @return EmpresaResponseDTO atualizada
      * @throws IllegalArgumentException se validação falhar
      */
-    public EmpresaDTO atualizar(Long id, EmpresaDTO dto) {
+    public EmpresaResponseDTO atualizar(Long id, EmpresaRequestDTO dto) {
         if (id == null || id <= 0) {
             throw new ValidationException("ID inválido");
         }

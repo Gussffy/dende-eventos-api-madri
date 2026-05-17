@@ -1,7 +1,8 @@
 package br.com.softhouse.dende.mappers;
 
-import br.com.softhouse.dende.dto.EventoDTO;
-import br.com.softhouse.dende.dto.EventoResumoDTO;
+import br.com.softhouse.dende.dto.request.EventoRequestDTO;
+import br.com.softhouse.dende.dto.response.EventoResponseDTO;
+import br.com.softhouse.dende.dto.response.EventoResumoDTO;
 import br.com.softhouse.dende.model.Evento;
 
 /**
@@ -15,7 +16,7 @@ public class EventoMapper {
     private EventoMapper() {}
 
     // Converte um EventoDTO para um objeto Evento (entidade)
-    public static Evento toEntity(EventoDTO dto, Long organizadorId) {
+    public static Evento toEntity(EventoRequestDTO dto, Long organizadorId) {
         if (dto == null) return null;
 
         // Criar um novo objeto Evento e preencher seus campos com os dados do DTO
@@ -35,16 +36,16 @@ public class EventoMapper {
         evento.setEstornaCancelamento(dto.getEstornaCancelamento());
         evento.setTaxaEstorno(dto.getTaxaEstorno());
         evento.setAtivo(dto.getAtivo() != null ? dto.getAtivo() : false);
-        evento.setIngressosVendidos(dto.getIngressosVendidos() != null ? dto.getIngressosVendidos() : 0);
+        evento.setIngressosVendidos(0);
 
         return evento;
     }
 
     // Converte um objeto Evento (entidade) para um EventoDTO
-    public static EventoDTO toDTO(Evento evento) {
+    public static EventoResponseDTO toDTO(Evento evento) {
         if (evento == null) return null;
 
-        EventoDTO dto = new EventoDTO();
+        EventoResponseDTO dto = new EventoResponseDTO();
         dto.setId(evento.getId());
         dto.setOrganizadorId(evento.getOrganizadorId());
         dto.setNome(evento.getNome());
@@ -86,7 +87,7 @@ public class EventoMapper {
     }
 
     // Atualiza os campos de um objeto Evento com os dados de um EventoDTO (usado para update)
-    public static Evento updateEntity(Evento evento, EventoDTO dto) {
+    public static Evento updateEntity(Evento evento, EventoRequestDTO dto) {
         if (dto == null) return evento;
 
         if (dto.getNome() != null) {
@@ -130,9 +131,6 @@ public class EventoMapper {
         }
         if (dto.getAtivo() != null) {
             evento.setAtivo(dto.getAtivo());
-        }
-        if (dto.getIngressosVendidos() != null) {
-            evento.setIngressosVendidos(dto.getIngressosVendidos());
         }
 
         return evento;

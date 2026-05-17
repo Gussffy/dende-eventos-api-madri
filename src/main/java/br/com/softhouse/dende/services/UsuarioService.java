@@ -3,7 +3,8 @@ package br.com.softhouse.dende.services;
 import br.com.softhouse.dende.exceptions.ConflictException;
 import br.com.softhouse.dende.exceptions.NotFoundException;
 import br.com.softhouse.dende.exceptions.ValidationException;
-import br.com.softhouse.dende.dto.UsuarioDTO;
+import br.com.softhouse.dende.dto.request.UsuarioRequestDTO;
+import br.com.softhouse.dende.dto.response.UsuarioResponseDTO;
 import br.com.softhouse.dende.mappers.UsuarioMapper;
 import br.com.softhouse.dende.model.Usuario;
 import br.com.softhouse.dende.repositories.UsuarioRepository;
@@ -29,7 +30,7 @@ public class UsuarioService {
     }
 
     // Metodo para cadastrar um novo usuário
-    public UsuarioDTO cadastrar(UsuarioDTO dto) {
+    public UsuarioResponseDTO cadastrar(UsuarioRequestDTO dto) {
         // Validar campos obrigatórios
         if (dto.getNome() == null || dto.getNome().trim().isEmpty()) {
             throw new ValidationException("Nome é obrigatório");
@@ -62,7 +63,7 @@ public class UsuarioService {
         return UsuarioMapper.toDTO(usuario);
     }
 
-    public UsuarioDTO buscarPorId(Long id) {
+    public UsuarioResponseDTO buscarPorId(Long id) {
         Usuario usuario = usuarioRepository.buscarPorId(id);
         if (usuario == null) {
             throw new NotFoundException("Usuário não encontrado");
@@ -87,7 +88,7 @@ public class UsuarioService {
     }
 
     // Metodo para atualizar um usuário existente
-    public UsuarioDTO atualizar(Long id, UsuarioDTO dto) {
+    public UsuarioResponseDTO atualizar(Long id, UsuarioRequestDTO dto) {
         if (id == null) {
             throw new ValidationException("ID do usuário é obrigatório");
         }
@@ -110,7 +111,7 @@ public class UsuarioService {
         return UsuarioMapper.toDTO(usuarioAtualizado);
     }
 
-    public UsuarioDTO ativarComSenha(Long id, String senha) {
+    public UsuarioResponseDTO ativarComSenha(Long id, String senha) {
         Usuario usuario = buscarEntidadePorId(id);
 
         if (!usuario.getSenha().equals(senha)) {
@@ -127,7 +128,7 @@ public class UsuarioService {
         return UsuarioMapper.toDTO(usuario);
     }
 
-    public UsuarioDTO desativarComSenha(Long id, String senha) {
+    public UsuarioResponseDTO desativarComSenha(Long id, String senha) {
         Usuario usuario = buscarEntidadePorId(id);
 
         // Validar senha (segurança)

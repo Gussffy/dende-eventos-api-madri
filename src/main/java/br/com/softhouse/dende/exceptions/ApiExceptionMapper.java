@@ -1,7 +1,7 @@
 package br.com.softhouse.dende.exceptions;
 
 import br.com.dende.softhouse.process.route.ResponseEntity;
-import br.com.softhouse.dende.dto.ApiResponse;
+import br.com.softhouse.dende.dto.response.ApiResponse;
 
 /**
  * Centraliza a tradução das exceções da aplicação em respostas HTTP padronizadas.
@@ -14,7 +14,10 @@ public final class ApiExceptionMapper {
     public static <T> ResponseEntity<ApiResponse<T>> toResponse(Throwable throwable) {
         int statusCode = statusCodeFor(throwable);
         String titulo = titleFor(statusCode);
-        return ResponseEntity.status(statusCode, new ApiResponse<>(messageFor(throwable), statusCode, titulo));
+        ApiResponse<T> response = new ApiResponse<>(messageFor(throwable), statusCode, titulo);
+        @SuppressWarnings("unchecked")
+        ResponseEntity<ApiResponse<T>> entity = (ResponseEntity<ApiResponse<T>>) (ResponseEntity<?>) ResponseEntity.status(statusCode, response);
+        return entity;
     }
 
     private static int statusCodeFor(Throwable throwable) {

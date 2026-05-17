@@ -1,6 +1,7 @@
 package br.com.softhouse.dende.mappers;
 
-import br.com.softhouse.dende.dto.EmpresaDTO;
+import br.com.softhouse.dende.dto.request.EmpresaRequestDTO;
+import br.com.softhouse.dende.dto.response.EmpresaResponseDTO;
 import br.com.softhouse.dende.model.Empresa;
 
 /**
@@ -21,17 +22,17 @@ public final class EmpresaMapper {
     }
 
     /**
-     * Converte uma entidade Empresa para um DTO EmpresaDTO
+     * Converte uma entidade Empresa para um DTO de resposta
      *
      * @param empresa a entidade Empresa a ser convertida
-     * @return EmpresaDTO com os dados da empresa
+     * @return EmpresaResponseDTO com os dados da empresa
      */
-    public static EmpresaDTO toDTO(Empresa empresa) {
+    public static EmpresaResponseDTO toDTO(Empresa empresa) {
         if (empresa == null) {
             return null;
         }
 
-        return new EmpresaDTO(
+        return new EmpresaResponseDTO(
                 empresa.getId(),
                 empresa.getOrganizadorId(),
                 empresa.getCnpj(),
@@ -41,12 +42,26 @@ public final class EmpresaMapper {
     }
 
     /**
-     * Converte um DTO EmpresaDTO para a entidade Empresa
+     * Converte um DTO de requisição para a entidade Empresa
      *
      * @param dto o DTO a ser convertido
      * @return Empresa com os dados do DTO
      */
-    public static Empresa toEntity(EmpresaDTO dto) {
+    public static Empresa toEntity(EmpresaRequestDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        return new Empresa(
+                dto.getId(),
+                dto.getOrganizadorId(),
+                dto.getCnpj(),
+                dto.getRazaoSocial(),
+                dto.getNomeFantasia()
+        );
+    }
+
+    public static Empresa toEntity(EmpresaResponseDTO dto) {
         if (dto == null) {
             return null;
         }
@@ -67,7 +82,7 @@ public final class EmpresaMapper {
      * @param dto o DTO contendo os novos dados
      * @return a entidade atualizada
      */
-    public static Empresa updateEntity(Empresa entity, EmpresaDTO dto) {
+    public static Empresa updateEntity(Empresa entity, EmpresaRequestDTO dto) {
         if (entity == null || dto == null) {
             return entity;
         }

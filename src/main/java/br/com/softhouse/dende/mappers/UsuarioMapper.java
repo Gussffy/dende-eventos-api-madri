@@ -1,7 +1,8 @@
 package br.com.softhouse.dende.mappers;
 
 import br.com.softhouse.dende.exceptions.ConflictException;
-import br.com.softhouse.dende.dto.UsuarioDTO;
+import br.com.softhouse.dende.dto.request.UsuarioRequestDTO;
+import br.com.softhouse.dende.dto.response.UsuarioResponseDTO;
 import br.com.softhouse.dende.model.Usuario;
 
 /**
@@ -15,7 +16,7 @@ public class UsuarioMapper {
     private UsuarioMapper() {}
 
     // Converte um UsuarioDTO para um objeto Usuario (entidade)
-    public static Usuario toEntity(UsuarioDTO dto) {
+    public static Usuario toEntity(UsuarioRequestDTO dto) {
         if (dto == null) return null; // Verificação de null para evitar NullPointerException
 
         // Criar um novo objeto Usuario e preencher seus campos com os dados do DTO
@@ -31,10 +32,10 @@ public class UsuarioMapper {
     }
 
     // Converte um objeto Usuario (entidade) para um UsuarioDTO
-    public static UsuarioDTO toDTO(Usuario usuario) {
+    public static UsuarioResponseDTO toDTO(Usuario usuario) {
         if (usuario == null) return null;
 
-        UsuarioDTO dto = new UsuarioDTO();
+        UsuarioResponseDTO dto = new UsuarioResponseDTO();
         dto.setId(usuario.getId());
         dto.setNome(usuario.getNome());
         dto.setDataNascimento(usuario.getDataNascimento());
@@ -48,7 +49,7 @@ public class UsuarioMapper {
     }
 
     // Atualiza os campos de um objeto Usuario com os dados de um UsuarioDTO (usado para update)
-    public static Usuario updateEntity(Usuario usuario, UsuarioDTO dto) {
+    public static Usuario updateEntity(Usuario usuario, UsuarioRequestDTO dto) {
 
         if (dto.getEmail() != null && !dto.getEmail().equals(usuario.getEmail())) {
             throw new ConflictException("Não é permitido alterar o email");

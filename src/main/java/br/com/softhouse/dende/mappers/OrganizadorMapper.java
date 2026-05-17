@@ -1,8 +1,9 @@
 package br.com.softhouse.dende.mappers;
 
 import br.com.softhouse.dende.exceptions.ConflictException;
-import br.com.softhouse.dende.dto.OrganizadorDTO;
-import br.com.softhouse.dende.dto.EmpresaDTO;
+import br.com.softhouse.dende.dto.request.EmpresaRequestDTO;
+import br.com.softhouse.dende.dto.request.OrganizadorRequestDTO;
+import br.com.softhouse.dende.dto.response.OrganizadorResponseDTO;
 import br.com.softhouse.dende.model.Organizador;
 
 /**
@@ -16,7 +17,7 @@ public class OrganizadorMapper {
     private OrganizadorMapper() {}
 
     // Converte um OrganizadorDTO para um objeto Organizador (entidade)
-    public static Organizador toEntity(OrganizadorDTO dto) {
+    public static Organizador toEntity(OrganizadorRequestDTO dto) {
         if (dto == null) return null;
 
         // Criar um novo objeto Organizador e preencher seus campos com os dados do DTO
@@ -32,10 +33,10 @@ public class OrganizadorMapper {
     }
 
     // Converte um objeto Organizador (entidade) para um OrganizadorDTO
-    public static OrganizadorDTO toDTO(Organizador organizador) {
+    public static OrganizadorResponseDTO toDTO(Organizador organizador) {
         if (organizador == null) return null;
 
-        OrganizadorDTO dto = new OrganizadorDTO();
+        OrganizadorResponseDTO dto = new OrganizadorResponseDTO();
         dto.setId(organizador.getId());
         dto.setNome(organizador.getNome());
         dto.setDataNascimento(organizador.getDataNascimento());
@@ -54,7 +55,7 @@ public class OrganizadorMapper {
     }
 
     // Atualiza os campos de um objeto Organizador com os dados de um OrganizadorDTO (usado para update)
-    public static Organizador updateEntity(Organizador organizador, OrganizadorDTO dto) {
+    public static Organizador updateEntity(Organizador organizador, OrganizadorRequestDTO dto) {
         if (dto == null) return organizador;
 
         if (dto.getEmail() != null && !dto.getEmail().equals(organizador.getEmail())) {
@@ -88,7 +89,7 @@ public class OrganizadorMapper {
      * @param organizadorId o ID do organizador (necessário para vincular a empresa)
      * @return EmpresaDTO com os dados da empresa, ou null se não houver dados
      */
-    public static EmpresaDTO toEmpresaDTO(OrganizadorDTO dto, Long organizadorId) {
+    public static EmpresaRequestDTO toEmpresaDTO(OrganizadorRequestDTO dto, Long organizadorId) {
         if (dto == null) return null;
 
         // Se nenhum dado de empresa foi fornecido, retorna null
@@ -99,7 +100,7 @@ public class OrganizadorMapper {
         }
 
         // Se algum dado foi fornecido, cria um EmpresaDTO
-        return new EmpresaDTO(
+        return new EmpresaRequestDTO(
                 organizadorId,
                 dto.getCnpj(),
                 dto.getRazaoSocial(),

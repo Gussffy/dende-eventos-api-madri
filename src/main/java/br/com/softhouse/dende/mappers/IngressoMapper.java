@@ -1,8 +1,8 @@
 package br.com.softhouse.dende.mappers;
 
-import br.com.softhouse.dende.dto.IngressoDTO;
 import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.Ingresso;
+import br.com.softhouse.dende.dto.response.IngressoResponseDTO;
 
 /**
  * Mapper para converter entre as classes de modelo (entidade) e as classes de DTO (Data Transfer Object).
@@ -14,12 +14,12 @@ public class IngressoMapper {
 
     private IngressoMapper() {}
 
-    // Converte um objeto Ingresso (entidade) para um IngressoDTO, incluindo informações do evento
-    public static IngressoDTO toDTO(Ingresso ingresso, Evento evento) {
+    // Converte um objeto Ingresso (entidade) para um IngressoResponseDTO, incluindo informações do evento
+    public static IngressoResponseDTO toDTO(Ingresso ingresso, Evento evento) {
         if (ingresso == null) return null;
 
-        // Criar um novo objeto IngressoDTO e preencher seus campos com os dados do ingresso e do evento
-        IngressoDTO dto = new IngressoDTO();
+        // Criar um novo objeto IngressoResponseDTO e preencher seus campos com os dados do ingresso e do evento
+        IngressoResponseDTO dto = new IngressoResponseDTO();
         dto.setId(ingresso.getId());
         dto.setUsuarioId(ingresso.getUsuarioId());
         dto.setEventoId(ingresso.getEventoId());
@@ -36,7 +36,7 @@ public class IngressoMapper {
         return dto;
     }
 
-    // Converte um IngressoDTO para um objeto Ingresso (entidade), preenchendo apenas os campos básicos
+    // Converte os dados básicos para um objeto Ingresso (entidade)
     public static Ingresso createIngresso(Long usuarioId, Long eventoId, Double valorPago) {
         return new Ingresso(usuarioId, eventoId, valorPago);
     }

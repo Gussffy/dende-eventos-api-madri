@@ -3,8 +3,9 @@ package br.com.softhouse.dende.services;
 import br.com.softhouse.dende.exceptions.ConflictException;
 import br.com.softhouse.dende.exceptions.NotFoundException;
 import br.com.softhouse.dende.exceptions.ValidationException;
-import br.com.softhouse.dende.dto.EventoDTO;
-import br.com.softhouse.dende.dto.EventoResumoDTO;
+import br.com.softhouse.dende.dto.request.EventoRequestDTO;
+import br.com.softhouse.dende.dto.response.EventoResponseDTO;
+import br.com.softhouse.dende.dto.response.EventoResumoDTO;
 import br.com.softhouse.dende.mappers.EventoMapper;
 import br.com.softhouse.dende.model.Evento;
 import br.com.softhouse.dende.model.Organizador;
@@ -42,7 +43,7 @@ public class EventoService {
         this.ingressoRepository = IngressoRepository.getInstance();
     }
 
-    public EventoDTO cadastrar(Long organizadorId, EventoDTO dto) {
+    public EventoResponseDTO cadastrar(Long organizadorId, EventoRequestDTO dto) {
         // Verificar se o organizador existe e está ativo
         Organizador org = organizadorRepository.buscarPorId(organizadorId);
         if (org == null) {
@@ -79,7 +80,6 @@ public class EventoService {
                 .estornaCancelamento(dto.getEstornaCancelamento())
                 .taxaEstorno(dto.getTaxaEstorno())
                 .ativo(dto.getAtivo() != null ? dto.getAtivo() : false)
-                .ingressosVendidos(dto.getIngressosVendidos() != null ? dto.getIngressosVendidos() : 0)
                 .build();
 
         // US7: Validar datas
@@ -98,7 +98,7 @@ public class EventoService {
         return EventoMapper.toDTO(evento);
     }
 
-    public EventoDTO buscarPorId(Long id) {
+    public EventoResponseDTO buscarPorId(Long id) {
         Evento evento = eventoRepository.buscarPorId(id);
         if (evento == null) {
             throw new NotFoundException("Evento não encontrado");
@@ -114,7 +114,7 @@ public class EventoService {
         return evento;
     }
 
-    public EventoDTO atualizar(Long organizadorId, Long eventoId, EventoDTO dto) {
+    public EventoResponseDTO atualizar(Long organizadorId, Long eventoId, EventoRequestDTO dto) {
         Evento existente = buscarEntidadePorId(eventoId);
 
         // Verificar se o evento pertence ao organizador
@@ -153,7 +153,7 @@ public class EventoService {
         return EventoMapper.toDTO(eventoAtualizado);
     }
 
-    public EventoDTO ativar(Long organizadorId, Long eventoId) {
+    public EventoResponseDTO ativar(Long organizadorId, Long eventoId) {
         Evento evento = buscarEntidadePorId(eventoId);
 
         if (!evento.getOrganizadorId().equals(organizadorId)) {
@@ -174,7 +174,7 @@ public class EventoService {
         return EventoMapper.toDTO(evento);
     }
 
-    public EventoDTO desativar(Long organizadorId, Long eventoId) {
+    public EventoResponseDTO desativar(Long organizadorId, Long eventoId) {
         Evento evento = buscarEntidadePorId(eventoId);
 
         if (!evento.getOrganizadorId().equals(organizadorId)) {
@@ -209,7 +209,7 @@ public class EventoService {
                 .collect(Collectors.toList());
     }
 
-    public List<EventoDTO> feedAtivos() {
+    public List<EventoResponseDTO> feedAtivos() {
         List<Evento> eventos = eventoRepository.listarAtivos();
 
         // US12: Ordenar por data de início e nome

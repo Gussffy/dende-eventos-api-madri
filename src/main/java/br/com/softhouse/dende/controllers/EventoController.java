@@ -5,9 +5,10 @@ import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
 import br.com.softhouse.dende.exceptions.ApiExceptionMapper;
 import br.com.softhouse.dende.exceptions.ValidationException;
-import br.com.softhouse.dende.dto.ApiResponse;
-import br.com.softhouse.dende.dto.EventoDTO;
-import br.com.softhouse.dende.dto.EventoResumoDTO;
+import br.com.softhouse.dende.dto.request.EventoRequestDTO;
+import br.com.softhouse.dende.dto.response.ApiResponse;
+import br.com.softhouse.dende.dto.response.EventoResponseDTO;
+import br.com.softhouse.dende.dto.response.EventoResumoDTO;
 import br.com.softhouse.dende.services.EventoService;
 import java.util.List;
 
@@ -29,12 +30,12 @@ public class EventoController {
 
     // Mapeia a rota POST /organizadores/{organizadorId}/eventos para o metodo cadastrar, que recebe o ID do organizador e os dados do evento no corpo da requisição
     @PostMapping(path = "/organizadores/{organizadorId}/eventos")
-    public ResponseEntity<ApiResponse<EventoDTO>> cadastrar(
+    public ResponseEntity<ApiResponse<EventoResponseDTO>> cadastrar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
-            @RequestBody EventoDTO dto) {
+            @RequestBody EventoRequestDTO dto) {
         try {
-            EventoDTO response = eventoService.cadastrar(organizadorId, dto);
-            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
+            EventoResponseDTO response = eventoService.cadastrar(organizadorId, dto);
+            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
                     response, "Evento cadastrado com sucesso", 201
             );
             return ResponseEntity.status(201, apiResponse);
@@ -45,13 +46,13 @@ public class EventoController {
 
     // Mapeia a rota PUT /organizadores/{organizadorId}/eventos/{eventoId} para o metodo alterar, que recebe o ID do organizador, o ID do evento e os dados atualizados do evento no corpo da requisição
     @PutMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}")
-    public ResponseEntity<ApiResponse<EventoDTO>> alterar(
+    public ResponseEntity<ApiResponse<EventoResponseDTO>> alterar(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
-            @RequestBody EventoDTO dto) {
+            @RequestBody EventoRequestDTO dto) {
         try {
-            EventoDTO response = eventoService.atualizar(organizadorId, eventoId, dto);
-            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
+            EventoResponseDTO response = eventoService.atualizar(organizadorId, eventoId, dto);
+            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
                     response, "Evento atualizado com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
@@ -62,12 +63,12 @@ public class EventoController {
 
     // Mapeia a rota PATCH /organizadores/{organizadorId}/eventos/{eventoId}/{status} para o metodo alterarStatusEvento, que recebe o ID do organizador, o ID do evento e o novo status (ativo/inativo) como parâmetros de caminho
     @PatchMapping(path = "/organizadores/{organizadorId}/eventos/{eventoId}/{status}")
-    public ResponseEntity<ApiResponse<EventoDTO>> alterarStatusEvento(
+    public ResponseEntity<ApiResponse<EventoResponseDTO>> alterarStatusEvento(
             @PathVariable(parameter = "organizadorId") Long organizadorId,
             @PathVariable(parameter = "eventoId") Long eventoId,
             @PathVariable(parameter = "status") boolean ativar) {
         try {
-            EventoDTO response;
+            EventoResponseDTO response;
             String operacao;
 
             if (ativar) {
@@ -78,7 +79,7 @@ public class EventoController {
                 operacao = "desativado";
             }
 
-            ApiResponse<EventoDTO> apiResponse = new ApiResponse<>(
+            ApiResponse<EventoResponseDTO> apiResponse = new ApiResponse<>(
                     response, "Evento " + operacao + " com sucesso", 200
             );
             return ResponseEntity.ok(apiResponse);
@@ -104,10 +105,10 @@ public class EventoController {
 
     // Mapeia a rota GET /eventos para o metodo feed, que retorna uma lista de eventos ativos disponíveis para os usuários
     @GetMapping(path = "/eventos")
-    public ResponseEntity<ApiResponse<List<EventoDTO>>> feed() {
+    public ResponseEntity<ApiResponse<List<EventoResponseDTO>>> feed() {
         try {
-            List<EventoDTO> response = eventoService.feedAtivos();
-            ApiResponse<List<EventoDTO>> apiResponse = new ApiResponse<>(
+            List<EventoResponseDTO> response = eventoService.feedAtivos();
+            ApiResponse<List<EventoResponseDTO>> apiResponse = new ApiResponse<>(
                     response, "Feed de eventos carregado", 200
             );
             return ResponseEntity.ok(apiResponse);

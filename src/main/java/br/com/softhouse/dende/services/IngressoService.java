@@ -1,6 +1,9 @@
 package br.com.softhouse.dende.services;
 
-import br.com.softhouse.dende.dto.*;
+import br.com.softhouse.dende.dto.request.CompraRequestDTO;
+import br.com.softhouse.dende.dto.response.CancelamentoResponseDTO;
+import br.com.softhouse.dende.dto.response.CompraResponseDTO;
+import br.com.softhouse.dende.dto.response.IngressoResponseDTO;
 import br.com.softhouse.dende.exceptions.ConflictException;
 import br.com.softhouse.dende.exceptions.NotFoundException;
 import br.com.softhouse.dende.exceptions.ValidationException;
@@ -197,7 +200,7 @@ public class IngressoService {
         return evento.calcularReembolso(ingresso.getValorPago());
     }
 
-    public List<IngressoDTO> listarPorUsuario(Long usuarioId) {
+    public List<IngressoResponseDTO> listarPorUsuario(Long usuarioId) {
 
         Usuario usuario = usuarioRepository.buscarPorId(usuarioId);
         if (usuario == null) {
