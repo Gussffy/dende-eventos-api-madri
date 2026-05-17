@@ -5,8 +5,16 @@ import br.com.softhouse.dende.model.enums.ModalidadeEvento;
 import java.time.LocalDateTime;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 // Classe de modelo para representar um evento no sistema
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Evento {
 
     // Atributos do evento
@@ -22,70 +30,11 @@ public class Evento {
     private ModalidadeEvento modalidade;
     private Integer capacidadeMaxima;
     private String local;
-    private Boolean ativo;
+    private Boolean ativo = false; // Por padrão, o evento é criado como inativo
     private Double precoIngresso;
-    private Boolean estornaCancelamento;
-    private Double taxaEstorno;
-    private Integer ingressosVendidos;
-
-    public Evento() {
-        this.ativo = false;              // Por padrão, o evento é criado como inativo
-        this.ingressosVendidos = 0;     // Inicializa a contagem de ingressos vendidos
-        this.estornaCancelamento = true;// Por padrão, o evento permite estorno em caso de cancelamento
-        this.taxaEstorno = 0.0;         // Por padrão, a taxa de estorno é 0%, ou seja, reembolsa o valor total pago
-    }
-
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getOrganizadorId() { return organizadorId; }
-    public void setOrganizadorId(Long organizadorId) { this.organizadorId = organizadorId; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getPagina() { return pagina; }
-    public void setPagina(String pagina) { this.pagina = pagina; }
-
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    public LocalDateTime getDataInicio() { return dataInicio; }
-    public void setDataInicio(LocalDateTime dataInicio) { this.dataInicio = dataInicio; }
-
-    public LocalDateTime getDataFinal() { return dataFinal; }
-    public void setDataFinal(LocalDateTime dataFinal) { this.dataFinal = dataFinal; }
-
-    public TipoEvento getTipoEvento() { return tipoEvento; }
-    public void setTipoEvento(TipoEvento tipoEvento) { this.tipoEvento = tipoEvento; }
-
-    public Long getEventoPrincipalId() { return eventoPrincipalId; }
-    public void setEventoPrincipalId(Long eventoPrincipalId) { this.eventoPrincipalId = eventoPrincipalId; }
-
-    public ModalidadeEvento getModalidade() { return modalidade; }
-    public void setModalidade(ModalidadeEvento modalidade) { this.modalidade = modalidade; }
-
-    public Integer getCapacidadeMaxima() { return capacidadeMaxima; }
-    public void setCapacidadeMaxima(Integer capacidadeMaxima) { this.capacidadeMaxima = capacidadeMaxima; }
-
-    public String getLocal() { return local; }
-    public void setLocal(String local) { this.local = local; }
-
-    public Boolean getAtivo() { return ativo; }
-    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
-
-    public Double getPrecoIngresso() { return precoIngresso; }
-    public void setPrecoIngresso(Double precoIngresso) { this.precoIngresso = precoIngresso; }
-
-    public Boolean getEstornaCancelamento() { return estornaCancelamento; }
-    public void setEstornaCancelamento(Boolean estornaCancelamento) { this.estornaCancelamento = estornaCancelamento; }
-
-    public Double getTaxaEstorno() { return taxaEstorno; }
-    public void setTaxaEstorno(Double taxaEstorno) { this.taxaEstorno = taxaEstorno; }
-
-    public Integer getIngressosVendidos() { return ingressosVendidos; }
-    public void setIngressosVendidos(Integer ingressosVendidos) { this.ingressosVendidos = ingressosVendidos; }
+    private Boolean estornaCancelamento = true; // Por padrão, permite estorno
+    private Double taxaEstorno = 0.0; // Taxa de estorno padrão
+    private Integer ingressosVendidos = 0; // Inicializa a contagem de ingressos vendidos
 
     // Metodo para validar as datas do evento
     public boolean validarDatas() {

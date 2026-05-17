@@ -4,72 +4,38 @@ import br.com.softhouse.dende.model.enums.StatusIngresso;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 // Classe de modelo para representar um ingresso no sistema
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Ingresso {
 
     // Atributos do ingresso
     private Long id;
     private Long usuarioId;
     private Long eventoId;
-    private String codigo;
-    private LocalDateTime dataCompra;
+    private String codigo = UUID.randomUUID().toString().toUpperCase().replace("-", "").substring(0, 12);
+    private LocalDateTime dataCompra = LocalDateTime.now();
     private Double valorPago;
-    private Double valorEstornado;
+    private Double valorEstornado = 0.0;
     private LocalDateTime dataCancelamento;
-    private StatusIngresso status;
-    private Boolean ingressoPrincipal;
-
-    public Ingresso() {
-        this.dataCompra = LocalDateTime.now();  // Define a data de compra como o momento atual
-        this.status = StatusIngresso.PENDENTE;  // Define o status inicial do ingresso como PENDENTE
-        this.ingressoPrincipal = true;          // Por padrão, o ingresso é considerado principal
-        this.codigo = gerarCodigo();            // Gera um código único para o ingresso usando UUID
-        this.valorEstornado = 0.0;
-    }
+    private StatusIngresso status = StatusIngresso.PENDENTE;
+    private Boolean ingressoPrincipal = true;
 
     public Ingresso(Long usuarioId, Long eventoId, Double valorPago) {
-        this();
         this.usuarioId = usuarioId;
         this.eventoId = eventoId;
         this.valorPago = valorPago;
     }
 
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
-    public Long getUsuarioId() { return usuarioId; }
-    public void setUsuarioId(Long usuarioId) { this.usuarioId = usuarioId; }
-
-    public Long getEventoId() { return eventoId; }
-    public void setEventoId(Long eventoId) { this.eventoId = eventoId; }
-
-    public String getCodigo() { return codigo; }
-    public void setCodigo(String codigo) { this.codigo = codigo; }
-
-    public LocalDateTime getDataCompra() { return dataCompra; }
-    public void setDataCompra(LocalDateTime dataCompra) { this.dataCompra = dataCompra; }
-
-    public Double getValorPago() { return valorPago; }
-    public void setValorPago(Double valorPago) { this.valorPago = valorPago; }
-
-    public Double getValorEstornado() { return valorEstornado; }
-    public void setValorEstornado(Double valorEstornado) { this.valorEstornado = valorEstornado; }
-
-    public LocalDateTime getDataCancelamento() { return dataCancelamento; }
-    public void setDataCancelamento(LocalDateTime dataCancelamento) { this.dataCancelamento = dataCancelamento; }
-
-    public StatusIngresso getStatus() { return status; }
-    public void setStatus(StatusIngresso status) { this.status = status; }
-
-    public Boolean getIngressoPrincipal() { return ingressoPrincipal; }
-    public void setIngressoPrincipal(Boolean ingressoPrincipal) { this.ingressoPrincipal = ingressoPrincipal; }
-
-    // Metodo para gerar um código único para o ingresso usando UUID
-    private String gerarCodigo() {
-        return UUID.randomUUID().toString().toUpperCase().replace("-", "").substring(0, 12);
-    }
+    // (codigo é inicializado inline com UUID)
 
     // Metodos para gerenciar o status do ingresso
     public boolean podeSerCancelado() {

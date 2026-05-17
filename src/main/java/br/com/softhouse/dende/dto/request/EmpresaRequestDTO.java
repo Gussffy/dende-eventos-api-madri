@@ -1,8 +1,17 @@
 package br.com.softhouse.dende.dto.request;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 /**
  * DTO de requisição de empresa.
  */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmpresaRequestDTO {
 
     private Long id;
@@ -11,37 +20,12 @@ public class EmpresaRequestDTO {
     private String razaoSocial;
     private String nomeFantasia;
 
-    public EmpresaRequestDTO() {
-    }
-
+    // Mantém um construtor compatível com a versão anterior usada pelos mappers
     public EmpresaRequestDTO(Long organizadorId, String cnpj, String razaoSocial, String nomeFantasia) {
         this.organizadorId = organizadorId;
         this.cnpj = cnpj;
         this.razaoSocial = razaoSocial;
         this.nomeFantasia = nomeFantasia;
     }
-
-    public EmpresaRequestDTO(Long id, Long organizadorId, String cnpj, String razaoSocial, String nomeFantasia) {
-        this.id = id;
-        this.organizadorId = organizadorId;
-        this.cnpj = cnpj;
-        this.razaoSocial = razaoSocial;
-        this.nomeFantasia = nomeFantasia;
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Long getOrganizadorId() { return organizadorId; }
-    public void setOrganizadorId(Long organizadorId) { this.organizadorId = organizadorId; }
-
-    public String getCnpj() { return cnpj; }
-    public void setCnpj(String cnpj) { this.cnpj = cnpj; }
-
-    public String getRazaoSocial() { return razaoSocial; }
-    public void setRazaoSocial(String razaoSocial) { this.razaoSocial = razaoSocial; }
-
-    public String getNomeFantasia() { return nomeFantasia; }
-    public void setNomeFantasia(String nomeFantasia) { this.nomeFantasia = nomeFantasia; }
 }
 
