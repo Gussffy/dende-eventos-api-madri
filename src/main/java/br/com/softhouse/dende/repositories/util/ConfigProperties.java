@@ -35,7 +35,7 @@ public class ConfigProperties {
     @Value(key = "datasource.hikari.minimum-idle")
     private String datasourceHikariMinimumIdle;
 
-    @Value(key = "datasource.hikari.connection-timeout}")
+    @Value(key = "datasource.hikari.connection-timeout")
     private String datasourceHikariConnectionTimeout;
 
     // Getters para acessar as propriedades

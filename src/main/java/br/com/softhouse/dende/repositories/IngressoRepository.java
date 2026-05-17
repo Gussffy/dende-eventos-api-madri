@@ -2,6 +2,7 @@ package br.com.softhouse.dende.repositories;
 
 import br.com.softhouse.dende.model.Ingresso;
 import br.com.softhouse.dende.model.enums.StatusIngresso;
+import br.com.softhouse.dende.repositories.util.CrudRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  * Repositório para gerenciar os ingressos, utilizando armazenamento em memória.
  * Implementa o padrão Singleton para garantir que haja apenas uma instância do repositório.
  */
-public class IngressoRepository {
+public class IngressoRepository implements CrudRepository<Ingresso, Long> {
     private static IngressoRepository instance;
     private final Map<Long, Ingresso> ingressos;
     private long proximoId;
@@ -35,6 +36,7 @@ public class IngressoRepository {
     /** CRUD DE INGRESSOS - Create, Read, Update, Delete */
 
     // Metodo para salvar um ingresso (criar ou atualizar)
+    @Override
     public Ingresso salvar(Ingresso ingresso) {
         if (ingresso.getId() == null) {
             ingresso.setId(proximoId++);
@@ -44,6 +46,7 @@ public class IngressoRepository {
     }
 
     // Metodo para buscar um ingresso por ID
+    @Override
     public Ingresso buscarPorId(Long id) {
         return ingressos.get(id);
     }
@@ -63,6 +66,7 @@ public class IngressoRepository {
     }
 
     // Metodo para atualizar um ingresso existente
+    @Override
     public void atualizar(Ingresso ingresso) {
         if (ingresso.getId() != null) {
             ingressos.put(ingresso.getId(), ingresso);
@@ -85,5 +89,15 @@ public class IngressoRepository {
                 .anyMatch(i -> i.getUsuarioId().equals(usuarioId) &&
                         i.getEventoId().equals(eventoId) &&
                         i.getStatus() == StatusIngresso.ATIVO);
+    }
+
+    @Override
+    public void deletar(Long id) {
+        ingressos.remove(id);
+    }
+
+    @Override
+    public List<Ingresso> listarTodos() {
+        return List.copyOf(ingressos.values());
     }
 }

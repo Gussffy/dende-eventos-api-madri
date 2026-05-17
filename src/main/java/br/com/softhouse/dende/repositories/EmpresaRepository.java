@@ -1,8 +1,10 @@
 package br.com.softhouse.dende.repositories;
 
 import br.com.softhouse.dende.model.Empresa;
+import br.com.softhouse.dende.repositories.util.CrudRepository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,7 +22,7 @@ import java.util.Map;
  * - Uma empresa "pertence" a exatamente um organizador
  * - Deletar um organizador em cascata deleta a empresa
  */
-public class EmpresaRepository {
+public class EmpresaRepository implements CrudRepository<Empresa, Long> {
 
     // Instância única do repositório (padrão Singleton)
     private static EmpresaRepository instance;
@@ -63,6 +65,7 @@ public class EmpresaRepository {
      * @param empresa a empresa a ser salva
      * @return a empresa salva com ID atribuído
      */
+    @Override
     public Empresa salvar(Empresa empresa) {
         if (empresa.getId() == null) {
             empresa.setId(proximoId++);
@@ -81,6 +84,7 @@ public class EmpresaRepository {
      * @param id o ID da empresa
      * @return a empresa encontrada, ou null se não existir
      */
+    @Override
     public Empresa buscarPorId(Long id) {
         return empresasPorId.get(id);
     }
@@ -132,6 +136,7 @@ public class EmpresaRepository {
      *
      * @param empresa a empresa com dados atualizados
      */
+    @Override
     public void atualizar(Empresa empresa) {
         if (empresa.getId() != null) {
             Empresa existente = empresasPorId.get(empresa.getId());
@@ -160,6 +165,7 @@ public class EmpresaRepository {
      *
      * @param id o ID da empresa a ser deletada
      */
+    @Override
     public void deletar(Long id) {
         Empresa empresa = empresasPorId.remove(id);
         if (empresa != null) {
@@ -188,6 +194,11 @@ public class EmpresaRepository {
      */
     public int contarEmpresas() {
         return empresasPorId.size();
+    }
+
+    @Override
+    public List<Empresa> listarTodos() {
+        return List.copyOf(empresasPorId.values());
     }
 }
 

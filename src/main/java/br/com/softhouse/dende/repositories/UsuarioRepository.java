@@ -1,8 +1,10 @@
 package br.com.softhouse.dende.repositories;
 
 import br.com.softhouse.dende.model.Usuario;
+import br.com.softhouse.dende.repositories.util.CrudRepository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -17,7 +19,7 @@ import java.util.Map;
  * rápida por ID e por Email.
  */
 
-public class UsuarioRepository {
+public class UsuarioRepository implements CrudRepository<Usuario, Long> {
 
     // Instância única do repositório (padrão Singleton)
     private static UsuarioRepository instance;
@@ -55,6 +57,7 @@ public class UsuarioRepository {
     /** CRUD DE USUÁRIOS - Create, Read, Update, Delete */
 
     // Metodo para salvar um usuário (criar ou atualizar)
+    @Override
     public Usuario salvar(Usuario usuario) {
         if (usuario.getId() == null) {                       // Verifica se o usuário não tem ID (é novo)
             usuario.setId(proximoId++);                      // Atribui um ID único ao usuário e incrementa o contador para o próximo ID
@@ -65,6 +68,7 @@ public class UsuarioRepository {
     }
 
     // Metodo para buscar um usuário por ID
+    @Override
     public Usuario buscarPorId(Long id) {
         return usuariosPorId.get(id);
     }
@@ -75,6 +79,7 @@ public class UsuarioRepository {
     }
 
     // Metodo para atualizar um usuário existente
+    @Override
     public void atualizar(Usuario usuario) {
 
         // Verifica se o usuário tem um ID (deve existir para ser atualizado)
@@ -99,5 +104,18 @@ public class UsuarioRepository {
     // Metodo para verificar se um email já existe
     public boolean emailExiste(String email) {
         return usuariosPorEmail.containsKey(email);
+    }
+
+    @Override
+    public void deletar(Long id) {
+        Usuario usuario = usuariosPorId.remove(id);
+        if (usuario != null) {
+            usuariosPorEmail.remove(usuario.getEmail());
+        }
+    }
+
+    @Override
+    public List<Usuario> listarTodos() {
+        return List.copyOf(usuariosPorId.values());
     }
 }

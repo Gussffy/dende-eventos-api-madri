@@ -1,6 +1,7 @@
 package br.com.softhouse.dende.repositories;
 
 import br.com.softhouse.dende.model.Evento;
+import br.com.softhouse.dende.repositories.util.CrudRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
  */
 
-public class EventoRepository {
+public class EventoRepository implements CrudRepository<Evento, Long> {
 
     // Instância única do repositório (padrão Singleton)
     private static EventoRepository instance;
@@ -39,6 +40,7 @@ public class EventoRepository {
     /** CRUD DE EVENTOS - Create, Read, Update, Delete */
 
     // Metodo para salvar um evento (criar ou atualizar)
+    @Override
     public Evento salvar(Evento evento) {
 
         if (evento.getId() == null) {   // Verifica se o evento ainda não tem um ID (novo evento)
@@ -49,6 +51,7 @@ public class EventoRepository {
     }
 
     // Metodo para buscar um evento por ID
+    @Override
     public Evento buscarPorId(Long id) {
         return eventos.get(id);
     }
@@ -63,6 +66,7 @@ public class EventoRepository {
     }
 
     // Metodo para atualizar um evento existente
+    @Override
     public void atualizar(Evento evento) {
 
         // Verifica se o evento tem um ID válido (não nulo) antes de atualizar
@@ -74,8 +78,14 @@ public class EventoRepository {
     }
 
     // Metodo para listar todos os eventos
+    @Override
     public List<Evento> listarTodos() {
         return List.copyOf(eventos.values());
+    }
+
+    @Override
+    public void deletar(Long id) {
+        eventos.remove(id);
     }
 
     // Metodo para listar apenas os eventos ativos, que ainda não aconteceram e que têm ingressos disponíveis

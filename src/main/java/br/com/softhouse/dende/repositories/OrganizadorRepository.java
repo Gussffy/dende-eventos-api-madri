@@ -1,8 +1,10 @@
 package br.com.softhouse.dende.repositories;
 
 import br.com.softhouse.dende.model.Organizador;
+import br.com.softhouse.dende.repositories.util.CrudRepository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,7 +16,7 @@ import java.util.Map;
  * Nota: Dados de empresa agora são gerenciados por EmpresaRepository (separação de responsabilidades).
  */
 
-public class OrganizadorRepository {
+public class OrganizadorRepository implements CrudRepository<Organizador, Long> {
 
     // Instância única do repositório (padrão Singleton)
     private static OrganizadorRepository instance;
@@ -45,6 +47,7 @@ public class OrganizadorRepository {
     /** CRUD DE ORGANIZADORES - Create, Read, Update, Delete */
 
     // Metodo para salvar um organizador (criar ou atualizar)
+    @Override
     public Organizador salvar(Organizador organizador) {
 
         if (organizador.getId() == null) {      //Verifica se o organizador ainda não tem um ID (novo organizador)
@@ -60,6 +63,7 @@ public class OrganizadorRepository {
     }
 
     // Metodo para buscar um organizador por ID
+    @Override
     public Organizador buscarPorId(Long id) {
         return organizadoresPorId.get(id);
     }
@@ -71,6 +75,7 @@ public class OrganizadorRepository {
 
 
     // Metodo para atualizar um organizador existente
+    @Override
     public void atualizar(Organizador organizador) {
 
         // Verifica se o organizador tem um ID (deve ter para ser atualizado)
@@ -98,5 +103,18 @@ public class OrganizadorRepository {
     // Metodo para verificar se um email já existe no repositório
     public boolean emailExiste(String email) {
         return organizadoresPorEmail.containsKey(email);
+    }
+
+    @Override
+    public void deletar(Long id) {
+        Organizador organizador = organizadoresPorId.remove(id);
+        if (organizador != null) {
+            organizadoresPorEmail.remove(organizador.getEmail());
+        }
+    }
+
+    @Override
+    public List<Organizador> listarTodos() {
+        return List.copyOf(organizadoresPorId.values());
     }
 }
