@@ -4,7 +4,6 @@ import br.com.dende.softhouse.annotations.Controller;
 import br.com.dende.softhouse.annotations.request.*;
 import br.com.dende.softhouse.process.route.ResponseEntity;
 import br.com.softhouse.dende.exceptions.ApiExceptionMapper;
-import br.com.softhouse.dende.exceptions.ValidationException;
 import br.com.softhouse.dende.dto.request.EventoRequestDTO;
 import br.com.softhouse.dende.dto.response.ApiResponse;
 import br.com.softhouse.dende.dto.response.EventoResponseDTO;
