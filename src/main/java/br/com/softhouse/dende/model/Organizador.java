@@ -4,7 +4,13 @@ import br.com.softhouse.dende.model.enums.Sexo;
 import java.time.LocalDate;
 import java.time.Period;
 
-// Classe de modelo para representar um organizador de eventos no sistema
+/**
+ * MODELO DE ORGANIZADOR
+ *
+ * Esta classe representa um organizador de eventos no sistema.
+ * Um organizador é uma especialização de um usuário com tipo_usuario = 'ORGANIZADOR'.
+ * Pode ter ou não uma empresa vinculada através da classe Empresa.
+ */
 public class Organizador {
 
     // Atributos do organizador
@@ -14,10 +20,8 @@ public class Organizador {
     private Sexo sexo;
     private String email;
     private String senha;
-    private String cnpj;
-    private String razaoSocial;
-    private String nomeFantasia;
     private Boolean ativo;
+    private Empresa empresa; // Relacionamento com Empresa (0..1)
 
     public Organizador() {
         this.ativo = true; // Por padrão, o organizador é criado como ativo
@@ -51,20 +55,17 @@ public class Organizador {
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
 
-    public String getCnpj() { return cnpj; }
-    public void setCnpj(String cnpj) { this.cnpj = cnpj; }
-
-    public String getRazaoSocial() { return razaoSocial; }
-    public void setRazaoSocial(String razaoSocial) { this.razaoSocial = razaoSocial; }
-
-    public String getNomeFantasia() { return nomeFantasia; }
-    public void setNomeFantasia(String nomeFantasia) { this.nomeFantasia = nomeFantasia; }
-
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 
-    public boolean isEmpresa() {
-        return cnpj != null && !cnpj.isEmpty();
+    public Empresa getEmpresa() { return empresa; }
+    public void setEmpresa(Empresa empresa) { this.empresa = empresa; }
+
+    /**
+     * Verifica se o organizador possui uma empresa vinculada
+     */
+    public boolean temEmpresa() {
+        return empresa != null;
     }
 
     // Metodo para calcular a idade do organizador

@@ -11,8 +11,10 @@ import br.com.softhouse.dende.services.OrganizadorService;
 /**
  * CONTROLLER DE ORGANIZADORES
  *
- * Essa classe é responsável por receber as requisições HTTP relacionadas a organizadores, como cadastro, atualização, ativação/desativação e visualização.
- * Ela atua como uma camada de apresentação, delegando a lógica de negócios para o OrganizadorService e formatando as respostas em um formato consistente (ApiResponse).
+ * Essa classe é responsável por receber as requisições HTTP relacionadas a organizadores,
+ * como cadastro, atualização, ativação/desativação e visualização.
+ * Ela atua como uma camada de apresentação, delegando a lógica de negócios para o OrganizadorService
+ * e formatando as respostas em um formato consistente (ApiResponse).
  */
 @Controller
 @RequestMapping(path = "/organizadores")
@@ -120,4 +122,5 @@ public class OrganizadorController {
             return ResponseEntity.status(status, apiResponse);
         }
     }
+
 }

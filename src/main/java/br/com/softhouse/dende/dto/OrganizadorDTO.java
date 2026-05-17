@@ -4,7 +4,14 @@ import br.com.softhouse.dende.model.enums.Sexo;
 import java.time.LocalDate;
 
 /**
- * Classe DTO unificada para receber e enviar dados de um organizador na API
+ * Classe DTO para receber e enviar dados de um organizador na API.
+ *
+ * Pode incluir dados de empresa opcionais:
+ * - cnpj: CNPJ da empresa (se o organizador tiver empresa)
+ * - razaoSocial: Razão social (se o organizador tiver empresa)
+ * - nomeFantasia: Nome fantasia (se o organizador tiver empresa)
+ *
+ * A empresa é um recurso dependente e é cadastrada junto com o organizador.
  */
 public class OrganizadorDTO {
     private Long id;
@@ -14,10 +21,12 @@ public class OrganizadorDTO {
     private Sexo sexo;
     private String email;
     private String senha;
+    private Boolean ativo;
+
+    // Dados opcionais de empresa
     private String cnpj;
     private String razaoSocial;
     private String nomeFantasia;
-    private Boolean ativo;
 
     public OrganizadorDTO() {}
 
@@ -43,6 +52,10 @@ public class OrganizadorDTO {
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
 
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+
+    // Getters e Setters para dados de empresa (opcionais)
     public String getCnpj() { return cnpj; }
     public void setCnpj(String cnpj) { this.cnpj = cnpj; }
 
@@ -51,7 +64,4 @@ public class OrganizadorDTO {
 
     public String getNomeFantasia() { return nomeFantasia; }
     public void setNomeFantasia(String nomeFantasia) { this.nomeFantasia = nomeFantasia; }
-
-    public Boolean getAtivo() { return ativo; }
-    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
 }

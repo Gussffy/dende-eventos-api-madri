@@ -10,6 +10,8 @@ import java.util.Map;
  *
  * Repositório para gerenciar os organizadores, utilizando armazenamento em memória.
  * Implementa o padrão Singleton para garantir que haja apenas uma instância do repositório.
+ *
+ * Nota: Dados de empresa agora são gerenciados por EmpresaRepository (separação de responsabilidades).
  */
 
 public class OrganizadorRepository {
@@ -17,10 +19,9 @@ public class OrganizadorRepository {
     // Instância única do repositório (padrão Singleton)
     private static OrganizadorRepository instance;
 
-    // Mapas para armazenar os organizadores, onde a chave é o ID, Email ou CNPJ do organizador e o valor é o objeto Organizador
+    // Mapas para armazenar os organizadores, onde a chave é o ID ou Email do organizador
     private final Map<Long, Organizador> organizadoresPorId;
     private final Map<String, Organizador> organizadoresPorEmail;
-    private final Map<String, Organizador> organizadoresPorCnpj;
 
     // Variável para gerar IDs únicos para os organizadores
     private long proximoId;
@@ -29,7 +30,6 @@ public class OrganizadorRepository {
     private OrganizadorRepository() {
         this.organizadoresPorId = new HashMap<>();      // Inicializa o mapa de IDs como um HashMap vazio
         this.organizadoresPorEmail = new HashMap<>();   // Inicializa o mapa de Emails como um HashMap vazio
-        this.organizadoresPorCnpj = new HashMap<>();    // Inicializa o mapa de CNPJs como um HashMap vazio
 
         this.proximoId = 1;     // Define que o primeiro ID a ser usado será 1
     }
@@ -54,10 +54,6 @@ public class OrganizadorRepository {
         organizadoresPorId.put(organizador.getId(), organizador);   //Armazena o organizador no mapa de IDs, usando o ID como chave
         organizadoresPorEmail.put(organizador.getEmail(), organizador); //Armazena o organizador no mapa de Emails, usando o Email como chave
 
-        // Verifica se o CNPJ do organizador não é nulo ou vazio antes de armazenar no mapa de CNPJs
-        if (organizador.getCnpj() != null && !organizador.getCnpj().isEmpty()) {
-            organizadoresPorCnpj.put(organizador.getCnpj(), organizador);
-        }
 
         // Retorna o organizador salvo (com ID atribuído)
         return organizador;
@@ -73,10 +69,6 @@ public class OrganizadorRepository {
         return organizadoresPorEmail.get(email);
     }
 
-    // Metodo para buscar um organizador por CNPJ
-    public Organizador buscarPorCnpj(String cnpj) {
-        return organizadoresPorCnpj.get(cnpj);
-    }
 
     // Metodo para atualizar um organizador existente
     public void atualizar(Organizador organizador) {
@@ -96,16 +88,6 @@ public class OrganizadorRepository {
                     organizadoresPorEmail.put(organizador.getEmail(), organizador);
                 }
 
-                // Verifica se o CNPJ foi alterado e se o novo CNPJ não é nulo ou vazio
-                if (existente.getCnpj() != null && organizador.getCnpj() != null &&
-                        !existente.getCnpj().equals(organizador.getCnpj())) {
-
-                    // Remove o organizador antigo do mapa de CNPJs (usando o CNPJ antigo como chave)
-                    organizadoresPorCnpj.remove(existente.getCnpj());
-
-                    // Atualiza o mapa de CNPJs com a nova entrada de CNPJ
-                    organizadoresPorCnpj.put(organizador.getCnpj(), organizador);
-                }
 
                 // Atualiza o mapa de IDs com a nova entrada do organizador
                 organizadoresPorId.put(organizador.getId(), organizador);
@@ -116,10 +98,5 @@ public class OrganizadorRepository {
     // Metodo para verificar se um email já existe no repositório
     public boolean emailExiste(String email) {
         return organizadoresPorEmail.containsKey(email);
-    }
-
-    // Metodo para verificar se um CNPJ já existe no repositório
-    public boolean cnpjExiste(String cnpj) {
-        return cnpj != null && !cnpj.isEmpty() && organizadoresPorCnpj.containsKey(cnpj);
     }
 }

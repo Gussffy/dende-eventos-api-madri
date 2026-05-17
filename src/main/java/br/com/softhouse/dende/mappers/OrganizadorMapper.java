@@ -1,6 +1,7 @@
 package br.com.softhouse.dende.mappers;
 
 import br.com.softhouse.dende.dto.OrganizadorDTO;
+import br.com.softhouse.dende.dto.EmpresaDTO;
 import br.com.softhouse.dende.model.Organizador;
 
 /**
@@ -24,9 +25,6 @@ public class OrganizadorMapper {
         organizador.setSexo(dto.getSexo());
         organizador.setEmail(dto.getEmail());
         organizador.setSenha(dto.getSenha());
-        organizador.setCnpj(dto.getCnpj());
-        organizador.setRazaoSocial(dto.getRazaoSocial());
-        organizador.setNomeFantasia(dto.getNomeFantasia());
         organizador.setAtivo(dto.getAtivo() != null ? dto.getAtivo() : true);
 
         return organizador;
@@ -43,10 +41,12 @@ public class OrganizadorMapper {
         dto.setIdade(organizador.getIdade());
         dto.setSexo(organizador.getSexo());
         dto.setEmail(organizador.getEmail());
-        dto.setCnpj(organizador.getCnpj());
-        dto.setRazaoSocial(organizador.getRazaoSocial());
-        dto.setNomeFantasia(organizador.getNomeFantasia());
         dto.setAtivo(organizador.getAtivo());
+        if (organizador.getEmpresa() != null) {
+            dto.setCnpj(organizador.getEmpresa().getCnpj());
+            dto.setRazaoSocial(organizador.getEmpresa().getRazaoSocial());
+            dto.setNomeFantasia(organizador.getEmpresa().getNomeFantasia());
+        }
         // Senha NÃO é copiada para o DTO (segurança)
 
         return dto;
@@ -54,11 +54,11 @@ public class OrganizadorMapper {
 
     // Atualiza os campos de um objeto Organizador com os dados de um OrganizadorDTO (usado para update)
     public static Organizador updateEntity(Organizador organizador, OrganizadorDTO dto) {
+        if (dto == null) return organizador;
 
         if (dto.getEmail() != null && !dto.getEmail().equals(organizador.getEmail())) {
             throw new IllegalArgumentException("Não é permitido alterar o email");
         }
-        if (dto == null) return organizador;
 
         if (dto.getNome() != null) {
             organizador.setNome(dto.getNome());
@@ -72,19 +72,37 @@ public class OrganizadorMapper {
         if (dto.getSenha() != null) {
             organizador.setSenha(dto.getSenha());
         }
-        if (dto.getCnpj() != null) {
-            organizador.setCnpj(dto.getCnpj());
-        }
-        if (dto.getRazaoSocial() != null) {
-            organizador.setRazaoSocial(dto.getRazaoSocial());
-        }
-        if (dto.getNomeFantasia() != null) {
-            organizador.setNomeFantasia(dto.getNomeFantasia());
-        }
         if (dto.getAtivo() != null) {
             organizador.setAtivo(dto.getAtivo());
         }
 
         return organizador;
+    }
+
+    /**
+     * Extrai os dados de empresa do OrganizadorDTO e retorna um EmpresaDTO.
+     * Se os dados de empresa não estiverem preenchidos, retorna null.
+     *
+     * @param dto o DTO do organizador
+     * @param organizadorId o ID do organizador (necessário para vincular a empresa)
+     * @return EmpresaDTO com os dados da empresa, ou null se não houver dados
+     */
+    public static EmpresaDTO toEmpresaDTO(OrganizadorDTO dto, Long organizadorId) {
+        if (dto == null) return null;
+
+        // Se nenhum dado de empresa foi fornecido, retorna null
+        if ((dto.getCnpj() == null || dto.getCnpj().trim().isEmpty()) &&
+            (dto.getRazaoSocial() == null || dto.getRazaoSocial().trim().isEmpty()) &&
+            (dto.getNomeFantasia() == null || dto.getNomeFantasia().trim().isEmpty())) {
+            return null;
+        }
+
+        // Se algum dado foi fornecido, cria um EmpresaDTO
+        return new EmpresaDTO(
+                organizadorId,
+                dto.getCnpj(),
+                dto.getRazaoSocial(),
+                dto.getNomeFantasia()
+        );
     }
 }
