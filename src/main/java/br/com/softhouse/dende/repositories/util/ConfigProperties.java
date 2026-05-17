@@ -23,8 +23,6 @@ import java.util.Properties;
 @Setter
 @Getter
 public class ConfigProperties {
-
-    // Getters para acessar as propriedades
     // Propriedades do DataSource
     @Value(key = "datasource.url")
     private String datasourceUrl;
