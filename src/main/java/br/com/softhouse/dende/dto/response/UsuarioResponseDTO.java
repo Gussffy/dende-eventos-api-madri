@@ -13,9 +13,6 @@ public class UsuarioResponseDTO {
     private String idade;
     private Sexo sexo;
     private String email;
-
-    // @JsonIgnore // Para não expor a senha na resposta da API mas não tem o Spring Boot ainda para usar essa anotação
-    private String senha;
     private Boolean ativo;
 
     public UsuarioResponseDTO() {}
@@ -38,9 +35,6 @@ public class UsuarioResponseDTO {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-
-    public String getSenha() { return senha; }
-    public void setSenha(String senha) { this.senha = senha; }
 
     public Boolean getAtivo() { return ativo; }
     public void setAtivo(Boolean ativo) { this.ativo = ativo; }
