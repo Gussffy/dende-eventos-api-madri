@@ -2,6 +2,8 @@ package br.com.softhouse.dende.repositories.util;
 
 import br.com.softhouse.dende.exceptions.ConfigurationException;
 import br.com.dende.softhouse.annotations.Value;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,8 +20,11 @@ import java.util.Properties;
  * - Configurações do DataSource (URL, usuário, senha, driver)
  * - Configurações do HikariCP (pool size, idle connections, timeout)
  */
+@Setter
+@Getter
 public class ConfigProperties {
 
+    // Getters para acessar as propriedades
     // Propriedades do DataSource
     @Value(key = "datasource.url")
     private String datasourceUrl;
@@ -42,63 +47,6 @@ public class ConfigProperties {
 
     @Value(key = "datasource.hikari.connection-timeout")
     private String datasourceHikariConnectionTimeout;
-
-    // Getters para acessar as propriedades
-    public String getDatasourceUrl() {
-        return datasourceUrl;
-    }
-
-    public void setDatasourceUrl(String datasourceUrl) {
-        this.datasourceUrl = datasourceUrl;
-    }
-
-    public String getDatasourceUsername() {
-        return datasourceUsername;
-    }
-
-    public void setDatasourceUsername(String datasourceUsername) {
-        this.datasourceUsername = datasourceUsername;
-    }
-
-    public String getDatasourcePassword() {
-        return datasourcePassword;
-    }
-
-    public void setDatasourcePassword(String datasourcePassword) {
-        this.datasourcePassword = datasourcePassword;
-    }
-
-    public String getDatasourceDriverClassName() {
-        return datasourceDriverClassName;
-    }
-
-    public void setDatasourceDriverClassName(String datasourceDriverClassName) {
-        this.datasourceDriverClassName = datasourceDriverClassName;
-    }
-
-    public String getDatasourceHikariMaximumPoolSize() {
-        return datasourceHikariMaximumPoolSize;
-    }
-
-    public void setDatasourceHikariMaximumPoolSize(String datasourceHikariMaximumPoolSize) {
-        this.datasourceHikariMaximumPoolSize = datasourceHikariMaximumPoolSize;
-    }
-
-    public String getDatasourceHikariMinimumIdle() {
-        return datasourceHikariMinimumIdle;
-    }
-
-    public void setDatasourceHikariMinimumIdle(String datasourceHikariMinimumIdle) {
-        this.datasourceHikariMinimumIdle = datasourceHikariMinimumIdle;
-    }
-
-    public String getDatasourceHikariConnectionTimeout() {
-        return datasourceHikariConnectionTimeout;
-    }
-
-    public void setDatasourceHikariConnectionTimeout(String datasourceHikariConnectionTimeout) {
-        this.datasourceHikariConnectionTimeout = datasourceHikariConnectionTimeout;
-    }
 
     public static ConfigProperties fromClasspath() {
         Properties properties = new Properties();
